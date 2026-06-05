@@ -1,0 +1,9 @@
+# MR Viagens — robots.txt
+# https://mrviagens.com
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+# Sitemap
+Sitemap: https://mrviagens.com/sitemap.xml

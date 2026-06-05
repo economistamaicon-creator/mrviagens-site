@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MR Agenda | Calendário de Voos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#06090F;--bg1:#0B1120;--bg2:#101828;
+  --glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --blue:#2196F3;--blue-l:#42A5F5;--blue-d:rgba(33,150,243,0.12);
+  --orange:#FF8C00;--orange-d:rgba(255,140,0,0.12);
+  --green:#00E676;--amber:#FFB300;--cyan:#00BCD4;
+  --text:#DDE6F5;--text2:#7B90B8;--text3:#4A5A78;
+  --white:#FFFFFF;--r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg0);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ── */
+.header{
+  background:var(--bg1);border-bottom:1px solid var(--border2);
+  padding:14px 24px;display:flex;align-items:center;gap:16px;
+}
+.header-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white);}
+.header-logo span{color:var(--blue);}
+.header-badge{
+  font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  background:var(--blue-d);color:var(--blue);border:1px solid var(--blue);
+  border-radius:20px;padding:3px 10px;
+}
+.header-actions{margin-left:auto;display:flex;gap:8px;}
+.btn-sm{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;
+  border:1px solid var(--border2);background:var(--glass2);color:var(--text2);
+  cursor:pointer;transition:all .18s;
+}
+.btn-sm:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ── LAYOUT ── */
+.wrap{display:grid;grid-template-columns:1fr 380px;gap:20px;padding:20px;max-width:1300px;margin:0 auto;}
+@media(max-width:900px){.wrap{grid-template-columns:1fr;}}
+
+/* ── PAINEL ESQUERDO: CALENDÁRIO ── */
+.cal-panel{background:var(--bg1);border:1px solid var(--border2);border-radius:18px;padding:24px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.cal-nav{background:none;border:1px solid var(--border2);color:var(--text2);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.cal-nav:hover{border-color:var(--blue);color:var(--blue);}
+.cal-month{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dow{text-align:center;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--text3);text-transform:uppercase;padding:6px 0;}
+.cal-day{
+  aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;position:relative;
+  transition:background .15s;font-size:13px;font-weight:500;gap:3px;
+}
+.cal-day:hover:not(.empty){background:var(--glass2);}
+.cal-day.today{background:var(--blue-d);color:var(--blue);font-weight:700;}
+.cal-day.today .cal-num{color:var(--blue);}
+.cal-day.selected{background:rgba(33,150,243,.2);border:1px solid var(--blue);}
+.cal-day.has-ida .dot-ida,.cal-day.has-volta .dot-volta{display:block;}
+.cal-day.empty{cursor:default;}
+.cal-num{font-size:13px;font-weight:600;line-height:1;}
+.dots{display:flex;gap:3px;justify-content:center;}
+.dot{width:5px;height:5px;border-radius:50%;display:none;}
+.dot-ida{background:var(--blue);}
+.dot-volta{background:var(--orange);}
+.cal-day.has-ida .dot-ida{display:block;}
+.cal-day.has-volta .dot-volta{display:block;}
+
+/* ── TOOLTIP ── */
+.tooltip{
+  position:fixed;background:#1a2540;border:1px solid var(--border2);
+  border-radius:10px;padding:12px 16px;min-width:220px;max-width:300px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:999;pointer-events:none;
+  opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s;
+}
+.tooltip.show{opacity:1;transform:translateY(0);}
+.tt-trip{padding:8px 0;border-bottom:1px solid var(--border);}
+.tt-trip:last-child{border-bottom:none;padding-bottom:0;}
+.tt-trip:first-child{padding-top:0;}
+.tt-name{font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px;}
+.tt-row{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:6px;margin-top:2px;}
+.tt-badge{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:2px 6px;border-radius:4px;}
+.tt-badge.ida{background:var(--blue-d);color:var(--blue);}
+.tt-badge.volta{background:var(--orange-d);color:var(--orange);}
+
+/* ── LISTA DE EVENTOS DO DIA ── */
+.day-detail{
+  margin-top:20px;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:12px;padding:16px;display:none;
+}
+.day-detail.show{display:block;}
+.day-detail-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+.event-card{
+  background:var(--glass);border:1px solid var(--border);border-radius:10px;
+  padding:12px;margin-bottom:8px;
+}
+.event-card:last-child{margin-bottom:0;}
+.ev-name{font-size:14px;font-weight:700;color:var(--white);margin-bottom:6px;}
+.ev-row{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;margin-top:3px;}
+.ev-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:4px;}
+.ev-badge.ida{background:var(--blue-d);color:var(--blue);}
+.ev-badge.volta{background:var(--orange-d);color:var(--orange);}
+.ev-actions{display:flex;gap:6px;margin-top:8px;}
+.ev-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .15s;}
+.ev-btn:hover{border-color:var(--blue);color:var(--blue);}
+.ev-btn.del:hover{border-color:#FF5252;color:#FF5252;}
+
+/* ── PAINEL DIREITO: FORM ── */
+.form-panel{display:flex;flex-direction:column;gap:16px;}
+.form-card{background:var(--bg1);border:1px solid var(--border2);border-radius:18px;padding:22px;}
+.form-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--white);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.form-title svg{width:18px;height:18px;color:var(--blue);}
+
+/* Toggle ida/volta */
+.toggle-row{display:flex;gap:8px;margin-bottom:18px;}
+.tog-btn{
+  flex:1;padding:9px;border-radius:9px;border:1px solid var(--border2);
+  background:none;color:var(--text2);font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.tog-btn.active{background:var(--blue-d);border-color:var(--blue);color:var(--blue);}
+
+/* Seções ida/volta */
+.trip-section{margin-bottom:16px;}
+.section-header{
+  font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.section-header.ida-h{color:var(--blue);}
+.section-header.volta-h{color:var(--orange);}
+.section-line{flex:1;height:1px;background:currentColor;opacity:.2;}
+
+.fld{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fld label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;}
+.fld input,.fld select{
+  background:var(--glass2);border:1px solid var(--border2);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;
+  transition:border-color .18s;
+}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--blue);}
+.fld input::placeholder{color:var(--text3);}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.btn-save-agenda{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--blue),var(--blue-l));
+  color:#fff;font-size:14px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:opacity .2s;
+}
+.btn-save-agenda:hover{opacity:.9;}
+.btn-save-agenda:disabled{opacity:.5;cursor:not-allowed;}
+
+/* Próximos voos */
+.upcoming{background:var(--bg1);border:1px solid var(--border2);border-radius:18px;padding:22px;}
+.upcoming-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:14px;}
+.up-item{
+  background:var(--glass);border:1px solid var(--border);border-radius:10px;
+  padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;
+}
+.up-item:last-child{margin-bottom:0;}
+.up-date{
+  background:var(--blue-d);border:1px solid var(--blue);border-radius:8px;
+  min-width:44px;text-align:center;padding:6px 4px;flex-shrink:0;
+}
+.up-day{font-size:18px;font-weight:800;color:var(--blue);line-height:1;}
+.up-mon{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--blue);opacity:.8;}
+.up-info{flex:1;}
+.up-name{font-size:13px;font-weight:700;color:var(--white);}
+.up-detail{font-size:11.5px;color:var(--text2);margin-top:2px;}
+.up-empty{font-size:13px;color:var(--text3);text-align:center;padding:20px 0;}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:#1a2540;border:1px solid var(--border2);border-radius:10px;
+  padding:12px 22px;font-size:13px;font-weight:600;color:var(--green);
+  box-shadow:0 8px 24px rgba(0,0,0,.4);transition:transform .3s;z-index:9999;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* Legenda */
+.legend{display:flex;gap:16px;margin-top:16px;justify-content:center;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.leg-dot{width:8px;height:8px;border-radius:50%;}
+
+/* ── DATEPICKER ── */
+.dp-wrap{position:relative;}
+.dp-input{
+  background:var(--glass2);border:1px solid var(--border2);border-radius:8px;
+  padding:9px 12px 9px 36px;color:var(--text);font-size:13px;
+  font-family:'DM Sans',sans-serif;width:100%;cursor:pointer;
+  transition:border-color .18s;caret-color:transparent;
+}
+.dp-input:focus{outline:none;border-color:var(--blue);}
+.dp-input::placeholder{color:var(--text3);}
+.dp-icon{
+  position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  color:var(--text3);pointer-events:none;
+}
+.dp-popup{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:999;
+  background:#111827;border:1px solid var(--border2);border-radius:12px;
+  padding:14px;width:260px;box-shadow:0 12px 40px rgba(0,0,0,.6);
+  display:none;
+}
+.dp-popup.open{display:block;}
+.dp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.dp-title{font-size:13px;font-weight:700;color:var(--white);}
+.dp-nav{background:none;border:1px solid var(--border2);color:var(--text2);
+  width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.dp-nav:hover{border-color:var(--blue);color:var(--blue);}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.dp-dow{text-align:center;font-size:9px;font-weight:700;letter-spacing:.5px;
+  color:var(--text3);text-transform:uppercase;padding:4px 0;}
+.dp-day{
+  aspect-ratio:1;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:500;cursor:pointer;
+  transition:background .12s;color:var(--text2);
+}
+.dp-day:hover:not(.dp-empty):not(.dp-selected){background:var(--glass2);color:var(--text);}
+.dp-day.dp-today{color:var(--blue);font-weight:700;}
+.dp-day.dp-selected{background:var(--blue);color:#fff;font-weight:700;}
+.dp-day.dp-empty{cursor:default;}
+.dp-day.dp-past{opacity:.35;}
+
+/* ── Edição inline no calendário ── */
+.ev-edit-panel{
+  margin-top:10px;
+  background:var(--bg1);
+  border:1px solid var(--blue);
+  border-radius:10px;
+  padding:14px;
+  display:none;
+}
+.ev-edit-panel.open{ display:block; }
+.ev-edit-title{
+  font-size:11px;font-weight:800;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--blue);margin-bottom:12px;
+}
+.ev-edit-grid{ display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.ev-edit-fld{ display:flex;flex-direction:column;gap:4px; }
+.ev-edit-fld label{ font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase; }
+.ev-edit-fld input{
+  background:var(--glass2);border:1px solid var(--border2);border-radius:7px;
+  padding:7px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;
+}
+.ev-edit-fld input:focus{ outline:none;border-color:var(--blue); }
+.ev-edit-full{ grid-column:1/-1; }
+.ev-edit-actions{
+  display:flex;gap:8px;margin-top:12px;padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.ev-edit-save{
+  flex:1;padding:8px;border-radius:8px;border:1px solid var(--blue);
+  background:var(--blue-d);color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .15s;
+}
+.ev-edit-save:hover{ background:var(--blue);color:#fff; }
+.ev-edit-del{
+  padding:8px 14px;border-radius:8px;border:1px solid rgba(255,82,82,.3);
+  background:rgba(255,82,82,.08);color:#FF5252;font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .15s;
+}
+.ev-edit-del:hover{ background:#FF5252;color:#fff; }
+.ev-edit-cancel{
+  padding:8px 14px;border-radius:8px;border:1px solid var(--border2);
+  background:none;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .15s;
+}
+.ev-edit-cancel:hover{ border-color:var(--text);color:var(--text); }
+
+/* ── Modal confirmar exclusão ── */
+.confirm-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.confirm-overlay.show{opacity:1;pointer-events:all;}
+.confirm-box{
+  background:#111827;border:1px solid var(--border2);border-radius:16px;
+  padding:28px 32px;max-width:340px;width:90%;text-align:center;
+  transform:scale(.95);transition:transform .2s;
+}
+.confirm-overlay.show .confirm-box{transform:scale(1);}
+.confirm-icon{font-size:32px;margin-bottom:12px;}
+.confirm-msg{font-size:15px;font-weight:600;color:var(--white);margin-bottom:6px;}
+.confirm-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+.confirm-yes{
+  padding:10px 24px;border-radius:9px;border:none;
+  background:#FF5252;color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+  transition:opacity .15s;
+}
+.confirm-yes:hover{opacity:.85;}
+.confirm-no{
+  padding:10px 24px;border-radius:9px;border:1px solid var(--border2);
+  background:none;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;
+  transition:all .15s;
+}
+.confirm-no:hover{border-color:var(--text);color:var(--text);}
+
+/* ── Config GitHub Agenda ── */
+.cfg-bar{
+  background:var(--bg1);border-bottom:1px solid var(--border2);
+  padding:10px 24px;display:flex;align-items:center;gap:12px;
+  font-size:12px;color:var(--text2);
+}
+.cfg-status{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;
+}
+.cfg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.cfg-dot.ok{background:var(--green);}
+.cfg-dot.off{background:var(--text3);}
+.cfg-btn-setup{
+  margin-left:auto;font-size:11px;font-weight:700;padding:5px 12px;
+  border-radius:7px;border:1px solid var(--border2);background:none;
+  color:var(--text2);cursor:pointer;transition:all .15s;
+}
+.cfg-btn-setup:hover{border-color:var(--blue);color:var(--blue);}
+
+/* Modal config */
+.setup-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.setup-overlay.show{opacity:1;pointer-events:all;}
+.setup-box{
+  background:#0d1526;border:1px solid var(--border2);border-radius:18px;
+  padding:28px;width:90%;max-width:420px;
+}
+.setup-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;
+  color:var(--white);margin-bottom:6px;}
+.setup-sub{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.setup-fld{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.setup-fld label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+.setup-fld input{
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;
+  padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;
+}
+.setup-fld input:focus{outline:none;border-color:var(--blue);}
+.setup-actions{display:flex;gap:8px;margin-top:20px;}
+.setup-save{
+  flex:1;padding:11px;border-radius:9px;border:none;
+  background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+}
+.setup-save:hover{opacity:.9;}
+.setup-cancel{
+  padding:11px 18px;border-radius:9px;border:1px solid var(--border2);
+  background:none;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;
+}
+.setup-msg{font-size:11.5px;margin-top:10px;min-height:16px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">MR <span>Agenda</span></div>
+  <div class="header-badge">Calendário de Voos</div>
+  <div class="header-actions">
+    <a href="../admin.html" class="btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Admin
+    </a>
+
+  </div>
+</div>
+
+<!-- Barra de status GitHub -->
+<div class="cfg-bar" id="cfgBar">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 013-.4c1.02 0 2.04.13 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/>
+  </svg>
+  <span id="cfgStatusTxt">Verificando sincronização...</span>
+  <div class="cfg-status">
+    <div class="cfg-dot off" id="cfgDot"></div>
+    <span id="cfgStatusLabel">Local</span>
+  </div>
+  <button class="cfg-btn-setup" onclick="abrirSetup()">⚙ Configurar</button>
+</div>
+
+<!-- Modal de configuração GitHub -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-box">
+    <div class="setup-title">Sincronização com GitHub</div>
+    <div class="setup-sub">
+      Configure o mesmo repositório do admin para salvar a agenda em qualquer dispositivo.<br>
+      As credenciais são detectadas automaticamente se você já configurou o admin.
+    </div>
+    <div class="setup-fld">
+      <label>Usuário GitHub</label>
+      <input type="text" id="si-owner" placeholder="ex: economistamaicon-creator">
+    </div>
+    <div class="setup-fld">
+      <label>Repositório</label>
+      <input type="text" id="si-repo" placeholder="ex: mrviagens-dados">
+    </div>
+    <div class="setup-fld">
+      <label>Token (ghp_...)</label>
+      <input type="password" id="si-token" placeholder="Token Classic com escopo repo">
+    </div>
+    <div class="setup-actions">
+      <button class="setup-save" onclick="salvarSetup()">Conectar</button>
+      <button class="setup-cancel" onclick="fecharSetup()">Cancelar</button>
+    </div>
+    <div class="setup-msg" id="setupMsg"></div>
+  </div>
+</div>
+
+
+<div class="wrap">
+
+  <!-- CALENDÁRIO -->
+  <div class="cal-panel">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="mudarMes(-1)">&#8249;</button>
+      <div class="cal-month" id="calTitle"></div>
+      <button class="cal-nav" onclick="mudarMes(1)">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Ida</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div>Volta</div>
+    </div>
+
+    <div class="day-detail" id="dayDetail">
+      <div class="day-detail-title" id="dayDetailTitle">Voos do dia</div>
+      <div id="dayDetailList"></div>
+    </div>
+  </div>
+
+  <!-- PAINEL DIREITO -->
+  <div class="form-panel">
+
+    <!-- FORMULÁRIO -->
+    <div class="form-card">
+      <div class="form-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Voo
+      </div>
+
+      <!-- Toggle tipo -->
+      <div class="toggle-row">
+        <button class="tog-btn active" id="togIdaVolta" onclick="setTipo('ida-volta')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/><path d="M19 12H5M12 19l-7-7 7-7" opacity=".4"/></svg>
+          Ida e Volta
+        </button>
+        <button class="tog-btn" id="togSoida" onclick="setTipo('somente-ida')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Somente Ida
+        </button>
+      </div>
+
+      <!-- Passageiro -->
+      <div class="fld">
+        <label>Nome do Passageiro</label>
+        <input type="text" id="f-nome" placeholder="Ex: João Silva">
+      </div>
+
+      <!-- SEÇÃO IDA -->
+      <div class="trip-section">
+        <div class="section-header ida-h">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Ida
+          <div class="section-line"></div>
+        </div>
+        <div class="fg2">
+          <div class="fld">
+            <label>Data</label>
+            <div class="dp-wrap">
+              <svg class="dp-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="text" id="f-ida-data" class="dp-input" placeholder="DD/MM/AAAA" readonly onclick="dpAbrir('dp-ida')">
+              <input type="hidden" id="f-ida-data-iso">
+              <div class="dp-popup" id="dp-ida"></div>
+            </div>
+          </div>
+          <div class="fld">
+            <label>Horário</label>
+            <input type="time" id="f-ida-hora">
+          </div>
+        </div>
+        <div class="fld">
+          <label>Aeroporto</label>
+          <input type="text" id="f-ida-local" placeholder="Ex: Congonhas (CGH)">
+        </div>
+      </div>
+
+      <!-- SEÇÃO VOLTA -->
+      <div class="trip-section" id="voltaSection">
+        <div class="section-header volta-h">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Volta
+          <div class="section-line"></div>
+        </div>
+        <div class="fg2">
+          <div class="fld">
+            <label>Data</label>
+            <div class="dp-wrap">
+              <svg class="dp-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="text" id="f-volta-data" class="dp-input" placeholder="DD/MM/AAAA" readonly onclick="dpAbrir('dp-volta')">
+              <input type="hidden" id="f-volta-data-iso">
+              <div class="dp-popup" id="dp-volta"></div>
+            </div>
+          </div>
+          <div class="fld">
+            <label>Horário</label>
+            <input type="time" id="f-volta-hora">
+          </div>
+        </div>
+        <div class="fld">
+          <label>Aeroporto</label>
+          <input type="text" id="f-volta-local" placeholder="Ex: Santa Maria (AJU)">
+        </div>
+      </div>
+
+      <button class="btn-save-agenda" id="btnSalvar" onclick="salvarVoo()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar no Calendário
+      </button>
+    </div>
+
+    <!-- PRÓXIMOS VOOS -->
+    <div class="upcoming">
+      <div class="upcoming-title">Próximos Voos</div>
+      <div id="upcomingList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+
+// == DATEPICKER ==
+var DP = {
+  mes: {}, ano: {}, campo: null
+};
+var DP_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var DP_DIAS  = ['D','S','T','Q','Q','S','S'];
+
+function dpAbrir(id) {
+  // Fechar qualquer popup aberto
+  document.querySelectorAll('.dp-popup.open').forEach(function(p){
+    if(p.id!==id) p.classList.remove('open');
+  });
+  var popup = document.getElementById(id);
+  if(popup.classList.contains('open')){ popup.classList.remove('open'); return; }
+
+  // Definir mês/ano inicial
+  var hoje = new Date();
+  if(!DP.mes[id]) DP.mes[id] = hoje.getMonth();
+  if(!DP.ano[id]) DP.ano[id] = hoje.getFullYear();
+  DP.campo = id;
+  dpRender(id);
+  popup.classList.add('open');
+}
+
+function dpRender(id) {
+  var popup = document.getElementById(id);
+  var m = DP.mes[id], a = DP.ano[id];
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Ler valor atual do campo hidden
+  var isoField = id==='dp-ida' ? 'f-ida-data-iso' : 'f-volta-data-iso';
+  var selIso = document.getElementById(isoField).value;
+
+  var html = '<div class="dp-header">'
+    + '<button class="dp-nav" onclick="dpNavCur(-1)">&#8249;</button>'
+    + '<span class="dp-title">'+DP_MESES[m]+' '+a+'</span>'
+    + '<button class="dp-nav" onclick="dpNavCur(1)">&#8250;</button>'
+    + '</div>'
+    + '<div class="dp-grid">';
+
+  DP_DIAS.forEach(function(d){
+    html += '<div class="dp-dow">'+d+'</div>';
+  });
+
+  var primeiroDia = new Date(a, m, 1).getDay();
+  var totalDias   = new Date(a, m+1, 0).getDate();
+
+  for(var i=0;i<primeiroDia;i++){
+    html += '<div class="dp-day dp-empty"></div>';
+  }
+  for(var d=1;d<=totalDias;d++){
+    var iso = fmt(a, m+1, d);
+    var dt  = new Date(a, m, d); dt.setHours(0,0,0,0);
+    var cls = 'dp-day';
+    if(iso===selIso) cls += ' dp-selected';
+    else if(dt.getTime()===hoje.getTime()) cls += ' dp-today';
+    html += '<div class="'+cls+'" data-iso="'+iso+'" data-dp="'+id+'" onclick="dpClickDay(this)">'
+      + d + '</div>';
+  }
+  html += '</div>';
+  popup.innerHTML = html;
+}
+
+function dpNav(id, dir) {
+  DP.mes[id] += dir;
+  if(DP.mes[id] > 11){ DP.mes[id]=0; DP.ano[id]++; }
+  if(DP.mes[id] < 0){  DP.mes[id]=11; DP.ano[id]--; }
+  dpRender(id);
+}
+
+function dpNavCur(dir) { dpNav(DP.campo, dir); }
+
+function dpClickDay(el){ dpSelecionar(el.getAttribute("data-dp"), el.getAttribute("data-iso")); }
+
+function dpSelecionar(id, iso) {
+  // Preencher campo visível (DD/MM/AAAA) e hidden (ISO)
+  var p = iso.split('-');
+  var br = p[2]+'/'+p[1]+'/'+p[0];
+  var visField = id==='dp-ida' ? 'f-ida-data' : 'f-volta-data';
+  var isoField = id==='dp-ida' ? 'f-ida-data-iso' : 'f-volta-data-iso';
+  document.getElementById(visField).value = br;
+  document.getElementById(isoField).value = iso;
+  document.getElementById(id).classList.remove('open');
+  dpRender(id); // atualizar visual do dia selecionado
+}
+
+// Fechar ao clicar fora
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.dp-wrap')){
+    document.querySelectorAll('.dp-popup.open').forEach(function(p){
+      p.classList.remove('open');
+    });
+  }
+});
+
+// == DADOS ==
+var STORAGE_KEY = 'mrv_agenda_voos';
+var voos = [];
+var tipoAtual = 'ida-volta';
+var mesCal = new Date().getMonth();
+var anoCal = new Date().getFullYear();
+var diaSelecionado = null;
+var editId = null;
+
+var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+             'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+// 
+function salvarLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(voos)); }
+function carregarLocal(){
+  try{ voos = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
+  catch(e){ voos=[]; }
+}
+
+// 
+function setTipo(tipo){
+  tipoAtual = tipo;
+  document.getElementById('togIdaVolta').classList.toggle('active', tipo==='ida-volta');
+  document.getElementById('togSoida').classList.toggle('active', tipo==='somente-ida');
+  document.getElementById('voltaSection').style.display = tipo==='ida-volta' ? '' : 'none';
+}
+
+// 
+function salvarVoo(){
+  var nome = document.getElementById('f-nome').value.trim();
+  var idaData = document.getElementById('f-ida-data-iso').value;
+  var idaHora = document.getElementById('f-ida-hora').value;
+  var idaLoc  = document.getElementById('f-ida-local').value.trim();
+
+  if(!nome){ alert('Informe o nome do passageiro.'); return; }
+  if(!idaData){ alert('Selecione a data de ida no calendário.'); return; }
+  if(!idaLoc){ alert('Informe o aeroporto de ida.'); return; }
+
+  var voo = {
+    id: editId || Date.now().toString(),
+    tipo: tipoAtual,
+    passageiro: nome,
+    ida: { data: idaData, hora: idaHora, local: idaLoc }
+  };
+
+  if(tipoAtual === 'ida-volta'){
+    var vData = document.getElementById('f-volta-data-iso').value;
+    var vHora = document.getElementById('f-volta-hora').value;
+    var vLoc  = document.getElementById('f-volta-local').value.trim();
+    if(!vData){ alert('Selecione a data de volta no calendário.'); return; }
+    voo.volta = { data: vData, hora: vHora, local: vLoc };
+  }
+
+  if(editId){
+    var idx = voos.findIndex(function(v){ return v.id===editId; });
+    if(idx>=0) voos[idx] = voo;
+    editId = null;
+  } else {
+    voos.push(voo);
+  }
+
+  salvarLocal();
+  limparForm();
+  renderCalendario();
+  renderUpcoming();
+  if(diaSelecionado) mostrarDia(diaSelecionado);
+  showToast('✓ Voo salvo no calendário!');
+}
+
+// 
+function limparForm(){
+  ['f-nome','f-ida-data','f-ida-data-iso','f-ida-hora','f-ida-local',
+   'f-volta-data','f-volta-data-iso','f-volta-hora','f-volta-local']
+    .forEach(function(id){ document.getElementById(id).value = ''; });
+  editId = null;
+  setTipo('ida-volta');
+  document.getElementById('btnSalvar').textContent = '✓  Salvar no Calendário';
+}
+
+// 
+function editarVoo(id){
+  var v = voos.find(function(x){ return x.id===id; });
+  if(!v) return;
+  editId = id;
+  setTipo(v.tipo);
+  document.getElementById('f-nome').value = v.passageiro;
+  var idaP=v.ida.data.split('-');
+  document.getElementById('f-ida-data').value = idaP[2]+'/'+idaP[1]+'/'+idaP[0];
+  document.getElementById('f-ida-data-iso').value = v.ida.data;
+  document.getElementById('f-ida-hora').value = v.ida.hora||'';
+  document.getElementById('f-ida-local').value = v.ida.local||'';
+  if(v.volta){
+    var vP=v.volta.data.split('-');
+    document.getElementById('f-volta-data').value = vP[2]+'/'+vP[1]+'/'+vP[0];
+    document.getElementById('f-volta-data-iso').value = v.volta.data;
+    document.getElementById('f-volta-hora').value = v.volta.hora||'';
+    document.getElementById('f-volta-local').value = v.volta.local||'';
+  }
+  document.getElementById('btnSalvar').innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Atualizar Voo';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// 
+function excluirVoo(id){
+  abrirConfirm(id);
+}
+
+function abrirConfirm(id){
+  var v=voos.find(function(x){return x.id===id;});
+  var nome=v?v.passageiro:'esta viagem';
+  document.getElementById('confirmSub').textContent='Viagem de '+nome+' será removida.';
+  document.getElementById('confirmOverlay').classList.add('show');
+  document.getElementById('confirmYes').onclick=function(){
+    voos=voos.filter(function(x){return x.id!==id;});
+    salvarLocal();
+    fecharConfirm();
+    renderCalendario();
+    renderUpcoming();
+    if(diaSelecionado) mostrarDia(diaSelecionado);
+    showToast('✓ Viagem removida!');
+  };
+}
+
+function fecharConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+// 
+function limparTudo(){
+  // confirmação inline não necessária (botão foi removido)
+  voos = [];
+  salvarLocal();
+  diaSelecionado = null;
+  document.getElementById('dayDetail').classList.remove('show');
+  renderCalendario();
+  renderUpcoming();
+  showToast('Calendário limpo.');
+}
+
+// 
+function mudarMes(dir){
+  mesCal += dir;
+  if(mesCal > 11){ mesCal=0; anoCal++; }
+  if(mesCal < 0){  mesCal=11; anoCal--; }
+  renderCalendario();
+}
+
+function voosNaData(dateStr){
+  return voos.filter(function(v){
+    return v.ida.data===dateStr || (v.volta && v.volta.data===dateStr);
+  });
+}
+
+function renderCalendario(){
+  document.getElementById('calTitle').textContent = MESES[mesCal] + ' ' + anoCal;
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Cabeçalho dias da semana
+  DIAS_SEMANA.forEach(function(d){
+    var el = document.createElement('div');
+    el.className = 'cal-dow';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  var primeiroDia = new Date(anoCal, mesCal, 1).getDay();
+  var totalDias   = new Date(anoCal, mesCal+1, 0).getDate();
+  var hoje = new Date();
+  var hojeStr = fmt(hoje.getFullYear(), hoje.getMonth()+1, hoje.getDate());
+
+  // Células vazias
+  for(var i=0;i<primeiroDia;i++){
+    var empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  for(var d=1;d<=totalDias;d++){
+    var dateStr = fmt(anoCal, mesCal+1, d);
+    var dayEl = document.createElement('div');
+    dayEl.className = 'cal-day';
+    if(dateStr===hojeStr) dayEl.classList.add('today');
+    if(diaSelecionado===dateStr) dayEl.classList.add('selected');
+
+    var vooDia = voosNaData(dateStr);
+    var temIda   = vooDia.some(function(v){ return v.ida.data===dateStr; });
+    var temVolta = vooDia.some(function(v){ return v.volta && v.volta.data===dateStr; });
+    if(temIda)   dayEl.classList.add('has-ida');
+    if(temVolta) dayEl.classList.add('has-volta');
+
+    var numEl = document.createElement('div');
+    numEl.className = 'cal-num';
+    numEl.textContent = d;
+    dayEl.appendChild(numEl);
+
+    if(temIda || temVolta){
+      var dotsEl = document.createElement('div');
+      dotsEl.className = 'dots';
+      if(temIda){   var di=document.createElement('div'); di.className='dot dot-ida';   dotsEl.appendChild(di); }
+      if(temVolta){ var dv=document.createElement('div'); dv.className='dot dot-volta'; dotsEl.appendChild(dv); }
+      dayEl.appendChild(dotsEl);
+    }
+
+    // Hover tooltip
+    if(vooDia.length > 0){
+      dayEl.addEventListener('mouseenter', (function(ds, el){
+        return function(e){ mostrarTooltip(ds, e, el); };
+      })(dateStr, dayEl));
+      dayEl.addEventListener('mouseleave', function(){ ocultarTooltip(); });
+    }
+
+    // Click → detalhe
+    dayEl.addEventListener('click', (function(ds){
+      return function(){
+        diaSelecionado = ds;
+        renderCalendario(); // re-render para atualizar seleção
+        mostrarDia(ds);
+      };
+    })(dateStr));
+
+    grid.appendChild(dayEl);
+  }
+}
+
+function fmt(y,m,d){ return y+'-'+(m<10?'0'+m:m)+'-'+(d<10?'0'+d:d); }
+
+function fmtData(iso){
+  if(!iso) return '';
+  var p=iso.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+function fmtHora(h){ return h||''; }
+
+// 
+function mostrarTooltip(dateStr, e, el){
+  var vooDia = voosNaData(dateStr);
+  if(!vooDia.length) return;
+  var tt = document.getElementById('tooltip');
+  var html = '';
+  vooDia.forEach(function(v){
+    html += '<div class="tt-trip">';
+    html += '<div class="tt-name">✈ '+v.passageiro+'</div>';
+    if(v.ida.data===dateStr){
+      html += '<div class="tt-row"><span class="tt-badge ida">Ida</span> ✈️ '+v.ida.local+'</div>';
+      if(v.ida.hora)  html += '<div class="tt-row" style="padding-left:40px">🕐 '+v.ida.hora+'</div>';
+    }
+    if(v.volta && v.volta.data===dateStr){
+      html += '<div class="tt-row"><span class="tt-badge volta">Volta</span> ✈️ '+v.volta.local+'</div>';
+      if(v.volta.hora)  html += '<div class="tt-row" style="padding-left:40px">🕐 '+v.volta.hora+'</div>';
+    }
+    html += '</div>';
+  });
+  tt.innerHTML = html;
+  var rect = el.getBoundingClientRect();
+  var top = rect.bottom + 8;
+  var left = rect.left;
+  if(left + 240 > window.innerWidth) left = window.innerWidth - 250;
+  tt.style.top = top + 'px';
+  tt.style.left = left + 'px';
+  tt.classList.add('show');
+}
+function ocultarTooltip(){ document.getElementById('tooltip').classList.remove('show'); }
+
+// 
+function mostrarDia(dateStr){
+  var vooDia = voosNaData(dateStr);
+  var detail = document.getElementById('dayDetail');
+  var list   = document.getElementById('dayDetailList');
+  var title  = document.getElementById('dayDetailTitle');
+
+  var p = dateStr.split('-');
+  title.textContent = 'Voos de ' + p[2] + '/' + p[1] + '/' + p[0];
+  list.innerHTML = '';
+
+  if(!vooDia.length){
+    list.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px 0">Nenhum voo neste dia.</div>';
+  } else {
+    vooDia.forEach(function(v){
+      var card = document.createElement('div');
+      card.className = 'event-card';
+
+      // Nome
+      var nome = document.createElement('div');
+      nome.className = 'ev-name';
+      nome.textContent = '✈ ' + v.passageiro;
+      card.appendChild(nome);
+
+      // Ida
+      if(v.ida.data === dateStr){
+        var rIda = document.createElement('div');
+        rIda.className = 'ev-row';
+        rIda.innerHTML = '<span class="ev-badge ida">Ida</span> ✈️ ' + v.ida.local;
+        card.appendChild(rIda);
+        if(v.ida.hora){
+          var hIda = document.createElement('div');
+          hIda.className = 'ev-row';
+          hIda.style.paddingLeft = '46px';
+          hIda.textContent = '🕐 ' + v.ida.hora;
+          card.appendChild(hIda);
+        }
+      }
+
+      // Volta
+      if(v.volta && v.volta.data === dateStr){
+        var rVol = document.createElement('div');
+        rVol.className = 'ev-row';
+        rVol.innerHTML = '<span class="ev-badge volta">Volta</span> ✈️ ' + v.volta.local;
+        card.appendChild(rVol);
+        if(v.volta.hora){
+          var hVol = document.createElement('div');
+          hVol.className = 'ev-row';
+          hVol.style.paddingLeft = '52px';
+          hVol.textContent = '🕐 ' + v.volta.hora;
+          card.appendChild(hVol);
+        }
+      }
+
+      // Botões de ação
+      var actions = document.createElement('div');
+      actions.className = 'ev-actions';
+
+      var btnEditar = document.createElement('button');
+      btnEditar.className = 'ev-btn';
+      btnEditar.textContent = '✏️ Editar';
+      btnEditar.addEventListener('click', (function(vid){ return function(){ abrirEdicaoInline(vid, card); }; })(v.id));
+      actions.appendChild(btnEditar);
+
+      var btnExcluir = document.createElement('button');
+      btnExcluir.className = 'ev-btn del';
+      btnExcluir.textContent = '🗑 Excluir';
+      btnExcluir.addEventListener('click', (function(vid){ return function(){ excluirVoo(vid); }; })(v.id));
+      actions.appendChild(btnExcluir);
+
+      card.appendChild(actions);
+
+      // Painel de edição inline
+      var editPanel = document.createElement('div');
+      editPanel.className = 'ev-edit-panel';
+      editPanel.id = 'edit-' + v.id;
+
+      var editTitle = document.createElement('div');
+      editTitle.className = 'ev-edit-title';
+      editTitle.textContent = '✏️ Editar viagem';
+      editPanel.appendChild(editTitle);
+
+      // Grid de campos
+      var grid = document.createElement('div');
+      grid.className = 'ev-edit-grid';
+      grid.innerHTML =
+        '<div class="ev-edit-fld"><label>Data ida</label><input type="text" id="ei-ida-data-'+v.id+'" class="dp-input" style="padding-left:12px" placeholder="DD/MM/AAAA" readonly></div>'
+        + '<div class="ev-edit-fld"><label>Hora ida</label><input type="time" id="ei-ida-hora-'+v.id+'"></div>'
+        + '<div class="ev-edit-fld ev-edit-full"><label>Aeroporto ida</label><input type="text" id="ei-ida-local-'+v.id+'"></div>'
+        + (v.volta
+          ? '<div class="ev-edit-fld"><label>Data volta</label><input type="text" id="ei-volta-data-'+v.id+'" class="dp-input" style="padding-left:12px" placeholder="DD/MM/AAAA" readonly></div>'
+          + '<div class="ev-edit-fld"><label>Hora volta</label><input type="time" id="ei-volta-hora-'+v.id+'"></div>'
+          + '<div class="ev-edit-fld ev-edit-full"><label>Aeroporto volta</label><input type="text" id="ei-volta-local-'+v.id+'"></div>'
+          : '')
+        + '<input type="hidden" id="ei-ida-iso-'+v.id+'">'
+        + (v.volta ? '<input type="hidden" id="ei-volta-iso-'+v.id+'">' : '');
+      editPanel.appendChild(grid);
+
+      // Mini calendário inline para data ida
+      var dpIda = document.createElement('div');
+      dpIda.id = 'ei-dp-ida-' + v.id;
+      dpIda.className = 'dp-popup';
+      dpIda.style.cssText = 'position:relative;top:0;left:0;width:100%;box-shadow:none;border-color:var(--border)';
+      editPanel.appendChild(dpIda);
+
+      // Mini calendário inline para data volta
+      if(v.volta){
+        var dpVol = document.createElement('div');
+        dpVol.id = 'ei-dp-volta-' + v.id;
+        dpVol.className = 'dp-popup';
+        dpVol.style.cssText = 'position:relative;top:0;left:0;width:100%;box-shadow:none;border-color:var(--border)';
+        editPanel.appendChild(dpVol);
+      }
+
+      // Botões do painel de edição
+      var editActions = document.createElement('div');
+      editActions.className = 'ev-edit-actions';
+
+      var btnSalvar = document.createElement('button');
+      btnSalvar.className = 'ev-edit-save';
+      btnSalvar.textContent = '✓ Salvar';
+      btnSalvar.addEventListener('click', (function(vid){ return function(){ salvarEdicao(vid); }; })(v.id));
+
+      var btnDelEdit = document.createElement('button');
+      btnDelEdit.className = 'ev-edit-del';
+      btnDelEdit.textContent = '🗑 Excluir viagem';
+      btnDelEdit.addEventListener('click', (function(vid){ return function(){ excluirVoo(vid); }; })(v.id));
+
+      var btnCancelar = document.createElement('button');
+      btnCancelar.className = 'ev-edit-cancel';
+      btnCancelar.textContent = 'Cancelar';
+      btnCancelar.addEventListener('click', (function(vid){ return function(){ fecharEdicao(vid); }; })(v.id));
+
+      editActions.appendChild(btnSalvar);
+      editActions.appendChild(btnDelEdit);
+      editActions.appendChild(btnCancelar);
+      editPanel.appendChild(editActions);
+      card.appendChild(editPanel);
+      list.appendChild(card);
+
+      // Vincular click no campo data para abrir dp inline
+      var idaDataEl = document.getElementById('ei-ida-data-'+v.id);
+      if(idaDataEl){
+        idaDataEl.addEventListener('click', (function(vid){
+          return function(){ dpAbrirInline('ei-dp-ida-'+vid,'ei-ida-data-'+vid,'ei-ida-iso-'+vid); };
+        })(v.id));
+      }
+      if(v.volta){
+        var voltaDataEl = document.getElementById('ei-volta-data-'+v.id);
+        if(voltaDataEl){
+          voltaDataEl.addEventListener('click', (function(vid){
+            return function(){ dpAbrirInline('ei-dp-volta-'+vid,'ei-volta-data-'+vid,'ei-volta-iso-'+vid); };
+          })(v.id));
+        }
+      }
+    });
+  }
+  detail.classList.add('show');
+}
+
+// 
+function renderUpcoming(){
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var proximos = [];
+  voos.forEach(function(v){
+    var dIda = new Date(v.ida.data+'T00:00:00');
+    if(dIda >= hoje) proximos.push({voo:v, data:v.ida.data, tipo:'ida'});
+    if(v.volta){
+      var dVolta = new Date(v.volta.data+'T00:00:00');
+      if(dVolta >= hoje) proximos.push({voo:v, data:v.volta.data, tipo:'volta'});
+    }
+  });
+  proximos.sort(function(a,b){ return a.data.localeCompare(b.data); });
+  proximos = proximos.slice(0,3);
+
+  var list = document.getElementById('upcomingList');
+  if(!proximos.length){
+    list.innerHTML = '<div class="up-empty">Nenhum voo próximo agendado.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  proximos.forEach(function(item){
+    var p = item.data.split('-');
+    var trecho = item.tipo==='ida' ? item.voo.ida : item.voo.volta;
+    var mesAbrev = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(p[1])-1];
+    var div = document.createElement('div');
+    div.className = 'up-item';
+    var cor = item.tipo==='ida' ? 'var(--blue)' : 'var(--orange)';
+    var bgCor = item.tipo==='ida' ? 'var(--blue-d)' : 'var(--orange-d)';
+    div.innerHTML =
+      '<div class="up-date" style="background:'+bgCor+';border-color:'+cor+'">'
+      +'<div class="up-day" style="color:'+cor+'">'+p[2]+'</div>'
+      +'<div class="up-mon" style="color:'+cor+'">'+mesAbrev+'</div>'
+      +'</div>'
+      +'<div class="up-info">'
+      +'<div class="up-name">'+item.voo.passageiro+'</div>'
+      +'<div class="up-detail">'+trecho.local+(trecho.hora?' · '+trecho.hora:'')+'</div>'
+      
+      +'</div>';
+    list.appendChild(div);
+  });
+}
+
+// 
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// 
+carregarLocal();
+setTipo('ida-volta');
+renderCalendario();
+renderUpcoming();
+
+// Pré-selecionar hoje
+var hojeStr2 = (function(){
+  var h=new Date();
+  return fmt(h.getFullYear(),h.getMonth()+1,h.getDate());
+})();
+// Data de hoje pré-selecionada no datepicker
+dpSelecionar('dp-ida', hojeStr2);
+
+// ── Edição inline no calendário ──────────────────────────────
+var DP_INLINE = { mes:{}, ano:{}, campo:null, visField:null, isoField:null };
+
+function abrirEdicaoInline(id, card) {
+  var id = id; // manter compatibilidade
+  return abrirEdicao(id);
+}
+
+function abrirEdicao(id) {
+  // Fechar outros painéis abertos
+  document.querySelectorAll('.ev-edit-panel.open').forEach(function(p){
+    if(p.id !== 'edit-'+id) p.classList.remove('open');
+  });
+  var painel = document.getElementById('edit-'+id);
+  if(!painel) return;
+  if(painel.classList.contains('open')){
+    painel.classList.remove('open'); return;
+  }
+
+  // Preencher campos com dados atuais do voo
+  var v = voos.find(function(x){ return x.id===id; });
+  if(!v) return;
+
+  // Ida
+  var idaP = v.ida.data.split('-');
+  var idaEl = document.getElementById('ei-ida-data-'+id);
+  if(idaEl) idaEl.value = idaP[2]+'/'+idaP[1]+'/'+idaP[0];
+  var idaIsoEl = document.getElementById('ei-ida-iso-'+id);
+  if(idaIsoEl) idaIsoEl.value = v.ida.data;
+  var idaHEl = document.getElementById('ei-ida-hora-'+id);
+  if(idaHEl) idaHEl.value = v.ida.hora||'';
+  var idaLEl = document.getElementById('ei-ida-local-'+id);
+  if(idaLEl) idaLEl.value = v.ida.local||'';
+
+  // Volta
+  if(v.volta) {
+    var vP = v.volta.data.split('-');
+    var vEl = document.getElementById('ei-volta-data-'+id);
+    if(vEl) vEl.value = vP[2]+'/'+vP[1]+'/'+vP[0];
+    var vIsoEl = document.getElementById('ei-volta-iso-'+id);
+    if(vIsoEl) vIsoEl.value = v.volta.data;
+    var vHEl = document.getElementById('ei-volta-hora-'+id);
+    if(vHEl) vHEl.value = v.volta.hora||'';
+    var vLEl = document.getElementById('ei-volta-local-'+id);
+    if(vLEl) vLEl.value = v.volta.local||'';
+  }
+
+  painel.classList.add('open');
+}
+
+function fecharEdicao(id) {
+  var painel = document.getElementById('edit-'+id);
+  if(painel) painel.classList.remove('open');
+}
+
+function salvarEdicao(id) {
+  var v = voos.find(function(x){ return x.id===id; });
+  if(!v) return;
+
+  var idaIso   = document.getElementById('ei-ida-iso-'+id).value || v.ida.data;
+  var idaHora  = document.getElementById('ei-ida-hora-'+id).value;
+  var idaLocal = document.getElementById('ei-ida-local-'+id).value.trim();
+
+  v.ida.data  = idaIso;
+  v.ida.hora  = idaHora;
+  v.ida.local = idaLocal;
+
+  if(v.volta) {
+    var vIso   = document.getElementById('ei-volta-iso-'+id).value || v.volta.data;
+    var vHora  = document.getElementById('ei-volta-hora-'+id).value;
+    var vLocal = document.getElementById('ei-volta-local-'+id).value.trim();
+    v.volta.data  = vIso;
+    v.volta.hora  = vHora;
+    v.volta.local = vLocal;
+  }
+
+  salvarLocal();
+  fecharEdicao(id);
+  renderCalendario();
+  renderUpcoming();
+  if(diaSelecionado) mostrarDia(diaSelecionado);
+  showToast('✓ Viagem atualizada!');
+}
+
+// Datepicker inline (dentro do painel de edição)
+function dpAbrirInline(popupId, visId, isoId) {
+  var popup = document.getElementById(popupId);
+  if(!popup) return;
+  if(popup.classList.contains('open')){ popup.classList.remove('open'); return; }
+  document.querySelectorAll('.dp-popup.open').forEach(function(p){
+    if(p.id!==popupId) p.classList.remove('open');
+  });
+  DP_INLINE.campo    = popupId;
+  DP_INLINE.visField = visId;
+  DP_INLINE.isoField = isoId;
+
+  // Inicializar mês/ano com o valor atual
+  var curIso = document.getElementById(isoId).value;
+  if(curIso) {
+    var p = curIso.split('-');
+    DP_INLINE.mes[popupId] = parseInt(p[1])-1;
+    DP_INLINE.ano[popupId] = parseInt(p[0]);
+  } else {
+    var hoje = new Date();
+    DP_INLINE.mes[popupId] = hoje.getMonth();
+    DP_INLINE.ano[popupId] = hoje.getFullYear();
+  }
+  dpRenderInline(popupId);
+  popup.classList.add('open');
+}
+
+function dpNavInline(dir) {
+  var id = DP_INLINE.campo;
+  DP_INLINE.mes[id] += dir;
+  if(DP_INLINE.mes[id] > 11){ DP_INLINE.mes[id]=0; DP_INLINE.ano[id]++; }
+  if(DP_INLINE.mes[id] < 0){  DP_INLINE.mes[id]=11; DP_INLINE.ano[id]--; }
+  dpRenderInline(id);
+}
+
+function dpRenderInline(id) {
+  var popup = document.getElementById(id);
+  if(!popup) return;
+  var m = DP_INLINE.mes[id], a = DP_INLINE.ano[id];
+  var selIso = document.getElementById(DP_INLINE.isoField||'').value||'';
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  var h2 = '<div class="dp-header">'
+    + '<button class="dp-nav" onclick="dpNavInline(-1)">&#8249;</button>'
+    + '<span class="dp-title">'+DP_MESES[m]+' '+a+'</span>'
+    + '<button class="dp-nav" onclick="dpNavInline(1)">&#8250;</button>'
+    + '</div><div class="dp-grid">';
+
+  DP_DIAS.forEach(function(d){ h2 += '<div class="dp-dow">'+d+'</div>'; });
+
+  var primeiroDia = new Date(a, m, 1).getDay();
+  var totalDias   = new Date(a, m+1, 0).getDate();
+  for(var i=0;i<primeiroDia;i++) h2 += '<div class="dp-day dp-empty"></div>';
+  for(var d=1;d<=totalDias;d++){
+    var iso = fmt(a, m+1, d);
+    var dt  = new Date(a, m, d); dt.setHours(0,0,0,0);
+    var cls = 'dp-day';
+    if(iso===selIso) cls += ' dp-selected';
+    else if(dt.getTime()===hoje.getTime()) cls += ' dp-today';
+    h2 += '<div class="'+cls+'" data-iso="'+iso+'" onclick="dpSelecionarInline(this)">'
+       + d + '</div>';
+  }
+  h2 += '</div>';
+  popup.innerHTML = h2;
+}
+
+function dpSelecionarInline(el) {
+  var iso = el.getAttribute('data-iso');
+  var p   = iso.split('-');
+  var br  = p[2]+'/'+p[1]+'/'+p[0];
+  var visEl = document.getElementById(DP_INLINE.visField);
+  var isoEl = document.getElementById(DP_INLINE.isoField);
+  if(visEl) visEl.value = br;
+  if(isoEl) isoEl.value = iso;
+  document.getElementById(DP_INLINE.campo).classList.remove('open');
+  dpRenderInline(DP_INLINE.campo);
+}
+
+// ── SINCRONIZAÇÃO GITHUB ─────────────────────────────────────
+var GH_AG = null;   // config GitHub da agenda
+var AG_PATH = 'agenda.json';
+var sincronizando = false;
+
+function carregarConfigGH() {
+  // 1. Tentar ler do localStorage da agenda
+  try {
+    var cfg = JSON.parse(localStorage.getItem('mrv_agenda_gh')||'null');
+    if(cfg && cfg.owner && cfg.token) { GH_AG = cfg; return true; }
+  } catch(e){}
+  // 2. Tentar ler do admin (mesmo domínio, mesmo localStorage)
+  try {
+    var adm = JSON.parse(localStorage.getItem('mrv_gh')||'null');
+    if(adm && adm.owner && adm.token) { GH_AG = adm; return true; }
+  } catch(e){}
+  return false;
+}
+
+function atualizarStatusBar() {
+  var dot   = document.getElementById('cfgDot');
+  var label = document.getElementById('cfgStatusLabel');
+  var txt   = document.getElementById('cfgStatusTxt');
+  if(!dot) return;
+  if(GH_AG) {
+    dot.className   = 'cfg-dot ok';
+    label.textContent = 'GitHub';
+    txt.textContent   = 'Sincronizado com ' + GH_AG.owner + '/' + GH_AG.repo;
+  } else {
+    dot.className   = 'cfg-dot off';
+    label.textContent = 'Local';
+    txt.textContent   = 'Dados salvos apenas neste dispositivo';
+  }
+}
+
+function ghAgFetch(path, opts) {
+  if(!GH_AG) return Promise.reject(new Error('GitHub não configurado'));
+  var url = 'https://api.github.com/repos/'+GH_AG.owner+'/'+GH_AG.repo+'/contents/'+path;
+  var hdrs = {'Authorization':'token '+GH_AG.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+  return fetch(url, Object.assign({headers:hdrs}, opts||{}));
+}
+
+function carregarAgendaGH() {
+  if(!GH_AG) return Promise.resolve(false);
+  return ghAgFetch(AG_PATH)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.content) return false;
+      var json = decodeURIComponent(escape(atob(d.content.replace(/[\r\n]/g,''))));
+      var arr  = JSON.parse(json);
+      if(Array.isArray(arr)){ voos = arr; salvarLocal(); return true; }
+      return false;
+    })
+    .catch(function(){ return false; });
+}
+
+function salvarAgendaGH() {
+  if(!GH_AG || sincronizando) return Promise.resolve();
+  sincronizando = true;
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(voos, null, 2))));
+  return ghAgFetch(AG_PATH)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      var body = {message:'Atualizar agenda', content:content, branch: GH_AG.branch||'main'};
+      if(d && d.sha) body.sha = d.sha;
+      return ghAgFetch(AG_PATH, {method:'PUT', body:JSON.stringify(body)});
+    })
+    .then(function(r){
+      sincronizando = false;
+      return r && r.ok;
+    })
+    .catch(function(){ sincronizando = false; return false; });
+}
+
+// Sobrescrever salvarLocal para também salvar no GH
+var _salvarLocalOrig = salvarLocal;
+salvarLocal = function() {
+  _salvarLocalOrig();
+  return salvarAgendaGH();
+};
+
+// Setup UI
+function abrirSetup() {
+  if(GH_AG) {
+    document.getElementById('si-owner').value = GH_AG.owner||'';
+    document.getElementById('si-repo').value  = GH_AG.repo||'';
+    document.getElementById('si-token').value = GH_AG.token||'';
+  }
+  document.getElementById('setupMsg').textContent = '';
+  document.getElementById('setupOverlay').classList.add('show');
+}
+
+function fecharSetup() {
+  document.getElementById('setupOverlay').classList.remove('show');
+}
+
+function salvarSetup() {
+  var owner = document.getElementById('si-owner').value.trim();
+  var repo  = document.getElementById('si-repo').value.trim();
+  var token = document.getElementById('si-token').value.trim();
+  var msg   = document.getElementById('setupMsg');
+
+  if(!owner||!repo||!token){ msg.style.color='#FF5252'; msg.textContent='Preencha todos os campos.'; return; }
+
+  var btn = document.querySelector('.setup-save');
+  btn.textContent = 'Conectando...'; btn.disabled = true;
+  msg.style.color = 'var(--text2)'; msg.textContent = 'Verificando acesso...';
+
+  var hdrs = {'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'};
+  fetch('https://api.github.com/repos/'+owner+'/'+repo, {headers:hdrs})
+    .then(function(r){
+      if(r.status===401) throw new Error('Token inválido.');
+      if(r.status===404) throw new Error('Repositório não encontrado.');
+      if(!r.ok) throw new Error('Erro '+r.status);
+      return r.json();
+    })
+    .then(function(d){
+      GH_AG = {owner:owner, repo:repo, token:token, branch:d.default_branch||'main'};
+      localStorage.setItem('mrv_agenda_gh', JSON.stringify(GH_AG));
+      atualizarStatusBar();
+      fecharSetup();
+      showToast('✓ GitHub conectado! Sincronizando...');
+      // Carregar dados do GitHub
+      carregarAgendaGH().then(function(ok){
+        if(ok){ renderCalendario(); renderUpcoming(); showToast('✓ Agenda sincronizada!'); }
+        else { salvarAgendaGH(); }
+      });
+    })
+    .catch(function(e){
+      msg.style.color = '#FF5252';
+      msg.textContent = e.message;
+    })
+    .finally(function(){
+      btn.textContent = 'Conectar'; btn.disabled = false;
+    });
+}
+
+// INIT: carregar config e agenda ao abrir
+(function initGH(){
+  if(carregarConfigGH()){
+    atualizarStatusBar();
+    carregarAgendaGH().then(function(ok){
+      if(ok){ renderCalendario(); renderUpcoming(); }
+    });
+  } else {
+    atualizarStatusBar();
+  }
+})();
+</script>
+
+<!-- Modal confirmação exclusão -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑</div>
+    <div class="confirm-msg">Excluir esta viagem?</div>
+    <div class="confirm-sub" id="confirmSub">Esta ação não pode ser desfeita.</div>
+    <div class="confirm-btns">
+      <button class="confirm-yes" id="confirmYes">Excluir</button>
+      <button class="confirm-no" onclick="fecharConfirm()">Cancelar</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
