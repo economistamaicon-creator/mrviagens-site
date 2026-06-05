@@ -206,15 +206,8 @@ input[type=checkbox]{width:17px;height:17px;accent-color:#9C27B0;cursor:pointer;
 /* RESPONSIVE */
 
 /* CALENDAR PICKER */
-.date-wrap{display:flex;gap:6px;align-items:stretch}
-.date-inp{flex:1;cursor:pointer}
-.cal-btn{background:rgba(33,150,243,0.1);border:1px solid rgba(33,150,243,0.25);
-  border-radius:10px;color:var(--blue-l);cursor:pointer;font-size:18px;
-  width:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;padding:0;line-height:1}
-.cal-btn:hover{background:rgba(33,150,243,0.22);border-color:var(--blue);
-  box-shadow:0 0 12px rgba(33,150,243,0.25)}
-
+.date-wrap{display:block}
+.date-inp{width:100%;cursor:pointer}
 #calPop{position:fixed;display:none;z-index:99999;
   background:rgba(11,17,32,0.97);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
   border:1px solid rgba(255,255,255,0.14);border-radius:18px;padding:18px;
@@ -475,8 +468,7 @@ function mkTr(d,i){
     <div class="date-time-group">
       <div class="fg fg-date"><label>Data de Embarque</label>
         <div class="date-wrap">
-          <input id="${d}_de_${i}" class="date-inp" value="${sv.de}" placeholder="Selecione a data" readonly>
-          <button type="button" class="cal-btn" onclick="openCal('${d}_de_${i}',this)" title="Abrir calendário">📅</button>
+          <input id="${d}_de_${i}" class="date-inp" value="${sv.de}" placeholder="Clique para selecionar a data" readonly onclick="openCal(this.id,this)">
         </div>
       </div>
       <div class="fg fg-time"><label>Horário de Partida</label>
@@ -498,8 +490,7 @@ function mkTr(d,i){
     <div class="date-time-group">
       <div class="fg fg-date"><label>Data de Chegada</label>
         <div class="date-wrap">
-          <input id="${d}_dd_${i}" class="date-inp" value="${sv.dd}" placeholder="Selecione a data" readonly>
-          <button type="button" class="cal-btn" onclick="openCal('${d}_dd_${i}',this)" title="Abrir calendário">📅</button>
+          <input id="${d}_dd_${i}" class="date-inp" value="${sv.dd}" placeholder="Clique para selecionar a data" readonly onclick="openCal(this.id,this)">
         </div>
       </div>
       <div class="fg fg-time"><label>Horário de Chegada</label>
