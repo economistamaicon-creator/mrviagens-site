@@ -1694,7 +1694,7 @@ function initCarousel() {
       return r.json().then(function(d) {
         if (!d || !d.content) throw new Error('no_content');
         try {
-          var json = decodeURIComponent(escape(atob(d.content.replace(/[\r\n]/g,''))));
+          var b64=d.content.replace(/[\r\n]/g,'');var json=decodeURIComponent(atob(b64).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join(''));
           return JSON.parse(json);
         } catch(e) { throw new Error('parse_fail'); }
       });
@@ -1835,7 +1835,7 @@ function fillPromo(i) {
   });
 })();
 
-window.addEventListener('load',   initCarousel);
+window.addEventListener('load', function(){ initCarousel(); initNoticias(); });
 window.addEventListener('resize', function(){ CIDX = 0; updateCarousel(); });
 
 </script>
@@ -1967,7 +1967,7 @@ function loadConfig() {
     .then(function(d){
       if (!d || !d.content) return;
       try {
-        var json = decodeURIComponent(escape(atob(d.content.replace(/[\r\n]/g,''))));
+        var b64=d.content.replace(/[\r\n]/g,'');var json=decodeURIComponent(atob(b64).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join(''));
         SITE_CFG = JSON.parse(json);
         applyConfig(SITE_CFG);
       } catch(e) {}
@@ -2049,7 +2049,7 @@ function initNoticias() {
       if (!r.ok) throw new Error('fail');
       return r.json().then(function(d) {
         if (!d || !d.content) throw new Error('empty');
-        var json = decodeURIComponent(escape(atob(d.content.replace(/[\r\n]/g, ''))));
+        var _b=d.content.replace(/[\r\n]/g,'');var json=decodeURIComponent(atob(_b).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join(''));
         return JSON.parse(json);
       });
     })
@@ -2089,12 +2089,7 @@ function buildNewsBar() {
   bar.classList.add('show');
 }
 
-// Iniciar notícias junto com o carrossel
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initNoticias);
-} else {
-  initNoticias();
-}
+// initNoticias chamado via window.load
 </script>
 </body>
 </html>
