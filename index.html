@@ -919,7 +919,54 @@ footer{
   from{opacity:0;transform:translateY(8px);}
   to{opacity:1;transform:translateY(0);}
 }
+
+/* ── BARRA DE NOTÍCIAS ROLANTES ── */
+#news-bar{
+  width:100%;background:var(--bg1);
+  border-bottom:1px solid var(--border2);
+  height:34px;display:none;align-items:center;
+  overflow:hidden;position:relative;
+}
+#news-bar.show{display:flex;}
+.news-label{
+  flex-shrink:0;display:flex;align-items:center;gap:6px;
+  background:var(--blue);color:#fff;
+  font-size:10px;font-weight:800;letter-spacing:1px;
+  text-transform:uppercase;padding:0 14px;height:100%;
+  white-space:nowrap;z-index:1;
+}
+.news-label svg{width:12px;height:12px;flex-shrink:0;}
+.news-outer{
+  flex:1;overflow:hidden;height:100%;display:flex;align-items:center;
+  mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent);
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent);
+}
+.news-track{
+  display:flex;align-items:center;white-space:nowrap;
+  animation:newsscroll linear infinite;
+  animation-duration:40s;
+  will-change:transform;
+}
+.news-track:hover{animation-play-state:paused;}
+@keyframes newsscroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+.news-item{
+  display:inline-flex;align-items:center;
+  padding:0 20px;font-size:12px;font-weight:500;
+  color:var(--text2);white-space:nowrap;
+  text-decoration:none;transition:color .18s;
+  cursor:pointer;
+}
+.news-item:hover{color:var(--blue-l);}
+.news-sep{
+  color:var(--text3);font-size:8px;
+  margin:0 4px;flex-shrink:0;
+}
 </style>
+
+<link rel="stylesheet" href="https://static.onertravel.com/widget/search/production/styles.css">
 </head>
 <body>
 
@@ -952,6 +999,20 @@ footer{
     <button class="burger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
 </nav>
+
+<!-- BARRA DE NOTÍCIAS ROLANTES -->
+<div id="news-bar">
+  <div class="news-label">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
+    </svg>
+    Notícias
+  </div>
+  <div class="news-outer">
+    <div class="news-track" id="newsTrack"></div>
+  </div>
+</div>
+
 
 <div class="mob-menu" id="mobMenu">
   <a href="#serviços" onclick="closeMenu()">Serviços</a>
@@ -1971,6 +2032,68 @@ function applyConfig(cfg) {
 // Carregar config ao iniciar (só se GH configurado)
 if (GH_OWNER && GH_REPO) {
   loadConfig();
+}
+</script>
+<script>
+// ── NOTÍCIAS ROLANTES ─────────────────────────────────────────
+var NEWS_PATH = 'noticias.json';
+var NOTICIAS_LIST = [];
+
+function initNoticias() {
+  if (!GH_OWNER || !GH_REPO) return;
+  var apiUrl = 'https://api.github.com/repos/'
+    + GH_OWNER + '/' + GH_REPO + '/contents/' + NEWS_PATH;
+
+  fetch(apiUrl)
+    .then(function(r) {
+      if (!r.ok) throw new Error('fail');
+      return r.json().then(function(d) {
+        if (!d || !d.content) throw new Error('empty');
+        var json = decodeURIComponent(escape(atob(d.content.replace(/[\r\n]/g, ''))));
+        return JSON.parse(json);
+      });
+    })
+    .then(function(data) {
+      NOTICIAS_LIST = Array.isArray(data)
+        ? data.filter(function(n){ return n.ativo !== false; })
+        : [];
+      buildNewsBar();
+    })
+    .catch(function() { buildNewsBar(); });
+}
+
+function buildNewsBar() {
+  var bar   = document.getElementById('news-bar');
+  var track = document.getElementById('newsTrack');
+  if (!bar || !track) return;
+
+  if (!NOTICIAS_LIST.length) {
+    bar.classList.remove('show');
+    return;
+  }
+
+  // Duplicar para loop contínuo
+  var doubled = NOTICIAS_LIST.concat(NOTICIAS_LIST);
+  var html = '';
+  doubled.forEach(function(n) {
+    html += '<a class="news-item" href="' + (n.url||'#')
+      + '" target="_blank" rel="noopener">' + n.titulo + '</a>'
+      + '<span class="news-sep">◆</span>';
+  });
+  track.innerHTML = html;
+
+  // Ajustar velocidade pela quantidade de conteúdo
+  var dur = Math.max(20, Math.round(track.scrollWidth / 120));
+  track.style.animationDuration = dur + 's';
+
+  bar.classList.add('show');
+}
+
+// Iniciar notícias junto com o carrossel
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNoticias);
+} else {
+  initNoticias();
 }
 </script>
 </body>
