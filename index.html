@@ -195,12 +195,15 @@ span.flatpickr-weekday{color:#7B90B8!important;font-weight:700!important;font-si
 }
 @keyframes planeBob{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-14px) rotate(-3deg)}}
 
-body { padding-top: 82px; /* nav(68) + ticker(28) */ }
+body {
+            font-family: 'Inter',sans-serif;
+            padding-top: 82px; /* nav(68) + ticker(14) */
+        }
 
         .news-ticker-container {
             width: 100%;
             height: 14px;
-            background: rgba(6, 9, 15, 0.88);
+            background: rgba(6,9,15,0.88);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             display: flex;
@@ -212,7 +215,7 @@ body { padding-top: 82px; /* nav(68) + ticker(28) */ }
             right: 0;
             z-index: 850;
         }
-            50%       { opacity: 0.35; }
+            50% { opacity: 0.5; }
         }
 
         .ticker-content {
@@ -224,31 +227,14 @@ body { padding-top: 82px; /* nav(68) + ticker(28) */ }
             position: relative;
         }
 
-        .ticker-content::before,
-        .ticker-content::after {
-            content: '';
-            position: absolute;
-            top: 0; bottom: 0; width: 48px;
-            z-index: 2; pointer-events: none;
-        }
-        .ticker-content::before {
-            left: 0;
-            background: linear-gradient(to right, rgba(6,9,15,0.95), transparent);
-        }
-        .ticker-content::after {
-            right: 0;
-            background: linear-gradient(to left, rgba(6,9,15,0.95), transparent);
-        }
-
         .ticker-scroll {
             display: flex;
             align-items: center;
             gap: 40px;
-            animation: nt-scroll-left 24s linear infinite;
+            animation: scroll-left 60s linear infinite;
             white-space: nowrap;
             padding-right: 100%;
             will-change: transform;
-            font-family: 'DM Sans', sans-serif;
         }
 
         .ticker-scroll.paused {
@@ -258,53 +244,66 @@ body { padding-top: 82px; /* nav(68) + ticker(28) */ }
         .ticker-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: rgba(221,230,245,0.7);
-            font-size: 16.5px;
+            gap: 10px;
+            color: #FFFFFF;
+            font-size: 14px;
             font-weight: 500;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
             flex-shrink: 0;
             cursor: pointer;
+            transition: color 0.3s ease;
             text-decoration: none;
-            transition: color 0.25s ease;
-            font-family: 'DM Sans', sans-serif;
         }
 
         .ticker-item:hover {
-            color: #42A5F5;
+            color: #FFD700;
         }
 
         .ticker-separator {
-            width: 1px;
-            height: 14px;
-            background: rgba(33,150,243,0.3);
-            flex-shrink: 0;
+            width:1px;
+            height:18px;
+            background:rgba(212,175,55,.35);
         }
 
-        @keyframes nt-scroll-left {
-            0%   { transform: translateX(0); }
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
 
         @media (max-width: 768px) {
-            body { padding-top: 80px; }
-            .news-ticker-container { height: 17px; }
-            .ticker-item  { font-size: 15.2px; gap: 6px; }
-            .ticker-scroll { gap: 28px; animation-duration: 34s; }
+            .news-ticker-container {
+                height: 14px;
+                top: 62px;
+            }
+            body {
+                padding-top: 76px; /* nav(62) + ticker(14) */
+            }
+            .ticker-item {
+                font-size: 15.2px;
+                gap: 6px;
+            }
+            .ticker-scroll {
+                gap: 24px;
+                animation-duration: 17s;
+            }
         }
 
         @media (max-width: 480px) {
-            body { padding-top: 80px; }
-            .news-ticker-container { height: 15px; }
-            .ticker-item  { font-size: 14.5px; gap: 5px; }
-            .ticker-scroll { gap: 20px; animation-duration: 28s; }
-        }
-        .ticker-label{
-            background:rgba(255,255,255,.06);
-            color:#d4af37;
-            font-weight:700;
-            letter-spacing:.8px;
-            border-right:1px solid rgba(255,255,255,.08);
+            body {
+                padding-top: 76px; /* nav(62) + ticker(14) */
+            }
+            .news-ticker-container {
+                height: 14px;
+                top: 62px;
+            }
+            .ticker-item {
+                font-size: 14.5px;
+                gap: 5px;
+            }
+            .ticker-scroll {
+                gap: 18px;
+                animation-duration: 14s;
+            }
         }
         .ticker-item{
             color:#f7f7f7;
@@ -321,9 +320,7 @@ body { padding-top: 82px; /* nav(68) + ticker(28) */ }
         .news-ticker-container{
             height:50px;
         }
-        body{
-            padding-top:50px;
-        }
+        
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -370,7 +367,8 @@ nav{
   height:68px;display:flex;align-items:center;justify-content:space-between;
   padding:0 5vw;gap:16px;
   background:rgba(6,9,15,0.88);backdrop-filter:blur(18px);
-}
+  }
+
 .nl{display:flex;align-items:center;gap:14px;flex-shrink:0}
 .logo-img{height:46px;width:auto;filter:drop-shadow(0 0 12px rgba(33,150,243,0.25));transition:filter .3s}
 .logo-img:hover{filter:drop-shadow(0 0 20px rgba(33,150,243,0.5))}
@@ -1039,6 +1037,10 @@ footer{
     <button class="burger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
 </nav>
+<div class="news-ticker-container" role="region" aria-label="Travel news and promotions ticker" aria-live="polite">
+        <div class="ticker-content" id="tickerContent">
+            <div class="ticker-scroll" id="tickerScroll"></div>
+        </div>
 
 <div class="mob-menu" id="mobMenu">
   <a href="#serviços" onclick="closeMenu()">Serviços</a>
@@ -1050,95 +1052,100 @@ footer{
 </div>
 
 <! -- NEWS TICKER -->
-<div class="news-ticker-container" role="region" aria-label="Travel news and promotions ticker" aria-live="polite">
-        <div class="ticker-content" id="tickerContent">
-            <div class="ticker-scroll" id="tickerScroll"></div>
-        </div>
     </div>
 
     <script>
-        // ── NEWS TICKER — busca noticias.json no GitHub ─────────────
-        function initializeTicker(items) {
-            const tickerScroll  = document.getElementById('tickerScroll');
+        const newsItems = [
+            {
+                text: 'Tag Porto Bank: ganhe até 30% de desconto em estacionamentos da Estapar',
+                link: 'https://passageirodeprimeira.com/tag-porto-bank-ganhe-ate-30-de-desconto-em-estacionamentos-da-estapar/'
+            },
+            {
+                text: 'Voltou! Cupom de 10% de desconto na Hoteis.com com parcelamento em até 12x sem juros',
+                link: 'https://passageirodeprimeira.com/voltou-cupom-de-10-de-desconto-na-hoteis-com-com-parcelamento-em-ate-12x-sem-juros-9/'
+            },
+            {
+                text: 'Azul exibirá jogos da Copa do Mundo ao vivo em voos da companhia',
+                link: 'https://pontospravoar.com/azul-exibira-jogos-da-copa-do-mundo-ao-vivo-em-voos-da-companhia/'
+            },
+            {
+                text: 'Passageiros poderão assistir os jogos da Copa em Guarulhos',
+                link: 'https://passageirodeprimeira.com/passageiros-jogos-copa-do-mundo-figurinhas-aeroporto-guarulhos/'
+            },
+            {
+                text: 'Orlando: passagens aéreas a partir de R$ 2.484 ida e volta saindo de várias cidades',
+                link: 'https://www.melhoresdestinos.com.br/promocao/orlando-selecao-passagens-aereas-capa-2102/'
+            },
+            {
+                text: 'Termina hoje! Promoção da Booking.com tem hotéis com até 40% OFF mais 6% de cashback exclusivo',
+                link: 'https://www.melhoresdestinos.com.br/promocao/booking-cashback-jun26'
+            }
+        ];
+
+        function initializeTicker() {
+            const tickerScroll = document.getElementById('tickerScroll');
             const tickerContent = document.getElementById('tickerContent');
-            if (!tickerScroll || !items || !items.length) return;
 
             tickerScroll.innerHTML = '';
 
-            items.forEach((item, index) => {
-                const a = document.createElement('a');
-                a.className   = 'ticker-item';
-                a.href        = item.url || item.link || '#';
-                a.target      = '_blank';
-                a.rel         = 'noopener noreferrer';
-                a.textContent = item.titulo || item.text || '';
-                a.setAttribute('aria-label', a.textContent);
-                tickerScroll.appendChild(a);
-                if (index < items.length - 1) {
-                    const sep = document.createElement('div');
-                    sep.className = 'ticker-separator';
-                    sep.setAttribute('aria-hidden', 'true');
-                    tickerScroll.appendChild(sep);
+            newsItems.forEach((item, index) => {
+                const itemElement = document.createElement('a');
+                itemElement.className = 'ticker-item';
+                itemElement.href = item.link;
+                itemElement.target = '_blank'; // opcional: abre em nova aba
+                itemElement.rel = 'noopener noreferrer';
+                itemElement.textContent = item.text;
+                itemElement.setAttribute('role', 'link');
+                itemElement.setAttribute('aria-label', item.text);
+
+                tickerScroll.appendChild(itemElement);
+
+                if (index < newsItems.length - 1) {
+                    const separator = document.createElement('div');
+                    separator.className = 'ticker-separator';
+                    separator.setAttribute('aria-hidden', 'true');
+                    tickerScroll.appendChild(separator);
                 }
             });
 
-            // Duplicar para loop contínuo
-            tickerScroll.innerHTML += tickerScroll.innerHTML;
+            const clonedHTML = tickerScroll.innerHTML;
+            tickerScroll.innerHTML += clonedHTML;
 
             tickerContent.addEventListener('mouseenter', () => {
                 tickerScroll.style.animationPlayState = 'paused';
             });
+
             tickerContent.addEventListener('mouseleave', () => {
                 tickerScroll.style.animationPlayState = 'running';
             });
         }
 
         function adjustAnimationSpeed() {
-            const ts = document.getElementById('tickerScroll');
-            if (!ts) return;
-            const w = window.innerWidth;
-            ts.style.animationDuration = w <= 480 ? '28s' : w <= 768 ? '34s' : '40s';
-        }
+            const tickerScroll = document.getElementById('tickerScroll');
+            const screenWidth = window.innerWidth;
+            let duration = 60;
 
-        function decodeB64(b64) {
-            const raw = atob(b64.replace(/[\r\n\s]/g, ''));
-            return decodeURIComponent(
-                raw.split('').map(c =>
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                ).join('')
-            );
+            if (screenWidth <= 768) duration = 50;
+            if (screenWidth <= 480) duration = 40;
+
+            tickerScroll.style.animationDuration = `${duration}s`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const apiUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/noticias.json`;
-            const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/noticias.json?t=${Date.now()}`;
-
-            fetch(apiUrl)
-                .then(r => r.ok ? r.json() : Promise.reject())
-                .then(d => {
-                    const lista  = JSON.parse(decodeB64(d.content));
-                    const ativos = lista.filter(n => n.ativo !== false);
-                    initializeTicker(ativos);
-                    adjustAnimationSpeed();
-                })
-                .catch(() => fetch(rawUrl)
-                    .then(r => r.ok ? r.json() : [])
-                    .then(lista => {
-                        const ativos = lista.filter(n => n.ativo !== false);
-                        initializeTicker(ativos);
-                        adjustAnimationSpeed();
-                    })
-                    .catch(() => {})
-                );
+            initializeTicker();
+            adjustAnimationSpeed();
         });
 
         window.addEventListener('resize', adjustAnimationSpeed);
 
         document.addEventListener('visibilitychange', () => {
-            const ts = document.getElementById('tickerScroll');
-            if (ts) ts.style.animationPlayState = document.hidden ? 'paused' : 'running';
+            const tickerScroll = document.getElementById('tickerScroll');
+            if (document.hidden) {
+                tickerScroll.style.animationPlayState = 'paused';
+            } else {
+                tickerScroll.style.animationPlayState = 'running';
+            }
         });
-        // ──────────────────────────────────────────────────────────────
     </script>
 
     <!-- Your existing content goes here -->
