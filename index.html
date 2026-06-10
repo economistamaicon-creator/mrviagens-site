@@ -2040,18 +2040,34 @@ var NEWS_PATH = 'noticias.json';
 var NOTICIAS_LIST = [];
 
 function initNoticias() {
-  if (!GH_OWNER || !GH_REPO) return;
+  if (!GH_OWNER || !GH_REPO) {
+    buildNewsBar();
+    return;
+  }
+  // Usa GitHub Contents API como fonte primaria (sem cache CDN)
+  // Garante que postagens aparecem IMEDIATAMENTE apos salvar no admin
   var apiUrl = 'https://api.github.com/repos/'
-    + GH_OWNER + '/' + GH_REPO + '/contents/' + NEWS_PATH;
+    + GH_OWNER + '/' + GH_REPO + '/contents/noticias.json';
+  var rawUrl = 'https://raw.githubusercontent.com/'
+    + GH_OWNER + '/' + GH_REPO + '/' + GH_BRANCH
+    + '/noticias.json?t=' + Date.now();
 
   fetch(apiUrl)
     .then(function(r) {
-      if (!r.ok) throw new Error('fail');
+      if (!r.ok) throw new Error('api_fail');
       return r.json().then(function(d) {
-        if (!d || !d.content) throw new Error('empty');
-        var _b=d.content.replace(/[\r\n]/g,'');var json=decodeURIComponent(atob(_b).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join(''));
-        return JSON.parse(json);
+        if (!d || !d.content) throw new Error('no_content');
+        try {
+          var b64=d.content.replace(/[\r\n]/g,'');var json=decodeURIComponent(atob(b64).split('').map(function(c){return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);}).join(''));
+          return JSON.parse(json);
+        } catch(e) { throw new Error('parse_fail'); }
       });
+    })
+    .catch(function() {
+      // Fallback: raw.githubusercontent.com
+      return fetch(rawUrl)
+        .then(function(r2) { return r2.ok ? r2.json() : []; })
+        .catch(function() { return []; });
     })
     .then(function(data) {
       NOTICIAS_LIST = Array.isArray(data)
