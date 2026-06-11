@@ -72,7 +72,8 @@
         "@type": "ContactPoint",
         "telephone": "+55-79-99165-6665",
         "contactType": "customer service",
-        "availableLanguage": "Portuguese"
+        "availableLanguage": "Portuguese",
+        "contactOption": "TollFree"
       },
       "priceRange": "$$",
       "currenciesAccepted": "BRL",
@@ -627,8 +628,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.45);cursor:
   background:linear-gradient(135deg,var(--blue),#0d5fa8);color:white;border:none;
   border-radius:10px;padding:11px;font-size:13.5px;font-weight:700;
   font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;
-  position:relative;overflow:hidden;min-height:42px;
 }
+.promo-btn:hover{opacity:.88}
 .promo-btn svg{width:15px;height:15px}
 .carousel-nav{display:flex;align-items:center;gap:10px;margin-top:20px;justify-content:center}
 .cnav-btn{width:40px;height:40px;border-radius:50%;background:var(--glass2);border:1px solid var(--border2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:18px}
@@ -732,6 +733,22 @@ footer{
   .stepgrid::before{display:none}
   .ftgrid{grid-template-columns:1fr 1fr}
 }
+.ticker-wrap{
+  width:100%;
+  height:22px;
+  background:rgba(6,9,15,0.88);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  display:flex;
+  align-items:center;
+  overflow:hidden;
+  position:fixed;
+  top:68px;
+  left:0;
+  right:0;
+  z-index:850;
+}
+
 @media(max-width:860px){
   .promo-card{width:calc(90vw - 24px) !important;max-width:420px}
 
@@ -877,17 +894,16 @@ footer{
 }
 
 /* ── Botão VIP hover ── */
-.promo-btn .btn-txt-default,.promo-btn .btn-txt-hover{position:absolute;left:0;right:0;transition:opacity .3s ease,transform .3s ease;}
+.promo-btn .btn-txt-default,.promo-btn .btn-txt-hover{position:relative;z-index:1;display:inline-block;transition:opacity .3s ease,transform .3s ease;}
 .promo-btn .btn-txt-default{opacity:1;transform:translateY(0);}
-.promo-btn .btn-txt-hover{opacity:0;transform:translateY(8px);}
-.promo-btn:hover .btn-txt-default{opacity:0;transform:translateY(-8px);}
-.promo-btn:hover .btn-txt-hover{opacity:1;transform:translateY(0);}
+.promo-btn .btn-txt-hover{display:none;opacity:0;transform:translateY(6px);}
+.promo-btn:hover .btn-txt-default{display:none;}
+.promo-btn:hover .btn-txt-hover{display:inline-block;opacity:1;transform:translateY(0);animation:slideUpIn .3s ease forwards;}
 @keyframes slideUpIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .promo-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#25D366,#128C7E);opacity:0;transition:opacity .4s ease;border-radius:10px;}
 .promo-btn:hover::before{opacity:1;}
 .promo-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,211,102,0.4);}
 .promo-btn:active{transform:translateY(0);}
-
 /* ── Share button ── */
 .promo-share-btn{
   display:flex;align-items:center;justify-content:center;gap:7px;
@@ -904,9 +920,7 @@ footer{
   transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,211,102,0.2);
 }
 .promo-share-btn:active{transform:translateY(0)}
-.promo-share-btn.copied{
-  background:rgba(37,211,102,0.15);border-color:#25D366;color:#25D366;
-}
+.promo-share-btn.copied{background:rgba(37,211,102,0.15);border-color:#25D366;color:#25D366;}
 
 /* ── Share toast ── */
 .share-toast{
@@ -921,23 +935,8 @@ footer{
 .share-toast svg{width:16px;height:16px;flex-shrink:0}
 .share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ════ FAIXA ROLANTE DE NOTÍCIAS ════════════════════════════ */
-.ticker-wrap{
-  width:100%;
-  height:22px;
-  background:rgba(6,9,15,0.88);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
-  display:flex;
-  align-items:center;
-  overflow:hidden;
-  position:fixed;
-  top:68px;
-  left:0;
-  right:0;
-  z-index:850;
-}
 
+/* ════ FAIXA ROLANTE DE NOTÍCIAS ════════════════════════════ */
 .ticker-label svg{width:12px;height:12px;}
 .ticker-label{
   flex-shrink:0;
@@ -1026,7 +1025,7 @@ footer{
 </nav>
 
 <!-- ════ FAIXA ROLANTE DE NOTÍCIAS ════ -->
-<div class="ticker-wrap" id="tickerWrap" style="display:none" role="marquee" aria-label="Notícias e novidades"><div class="ticker-label"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12" stroke="white" stroke-width="2"/></svg>NOVO</div><div class="ticker-viewport">
+<div class="ticker-wrap" id="tickerWrap" style="display:none" role="marquee" aria-label="Notícias e novidades"><div class="ticker-label"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>NOVO</div><div class="ticker-viewport">
     <div class="ticker-rail" id="tickerRail"></div>
   </div>
 </div>
@@ -1115,7 +1114,7 @@ footer{
           </div>
           <div class="fld">
             <label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Passageiros</label>
-            <button type="button" class="pbtn" id="v-pb" onclick="toggleDrop('v')">1 adulto, 0 crianças</button>
+            <button type="button" class="pbtn" id="v-pb" onclick="toggleDrop('v')">1 adulto, 0 criancas</button>
             <div class="pdrop" id="v-pd">
               <div class="prow"><div><div class="plab">Adultos</div><div class="psub">12 anos ou mais</div></div><div class="pctrl"><button type="button" class="pcb" onclick="chg('v','a',-1)">-</button><span class="pcount" id="v-ca">1</span><button type="button" class="pcb add" onclick="chg('v','a',1)">+</button></div></div>
               <div class="prow"><div><div class="plab">Crianças</div><div class="psub">2 a 11 anos</div></div><div class="pctrl"><button type="button" class="pcb" onclick="chg('v','c',-1)">-</button><span class="pcount" id="v-cc">0</span><button type="button" class="pcb add" onclick="chg('v','c',1)">+</button></div></div>
@@ -1144,7 +1143,7 @@ footer{
           <div class="fld"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Check-in</label><input type="text" id="h-in" placeholder="Selecione" readonly style="cursor:pointer"></div>
           <div class="fld"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Check-out</label><input type="text" id="h-out" placeholder="Selecione" readonly style="cursor:pointer"></div>
           <div class="fld"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Viajantes</label>
-            <button type="button" class="pbtn" id="h-pb" onclick="toggleDrop('h')">1 adulto, 0 crianças</button>
+            <button type="button" class="pbtn" id="h-pb" onclick="toggleDrop('h')">1 adulto, 0 criancas</button>
             <div class="pdrop" id="h-pd">
               <div class="prow"><div><div class="plab">Adultos</div><div class="psub">12 anos ou mais</div></div><div class="pctrl"><button type="button" class="pcb" onclick="chg('h','a',-1)">-</button><span class="pcount" id="h-ca">1</span><button type="button" class="pcb add" onclick="chg('h','a',1)">+</button></div></div>
               <div class="prow"><div><div class="plab">Crianças</div><div class="psub">2 a 11 anos</div></div><div class="pctrl"><button type="button" class="pcb" onclick="chg('h','c',-1)">-</button><span class="pcount" id="h-cc">0</span><button type="button" class="pcb add" onclick="chg('h','c',1)">+</button></div></div>
@@ -1180,7 +1179,7 @@ footer{
           <div class="fld"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Destino do Pacote</label><input type="text" id="p-dest" placeholder="Para onde quer ir?"></div>
           <div class="fld"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Data de Saída</label><input type="text" id="p-saida" placeholder="Selecione a data" readonly style="cursor:pointer"></div>
           <div class="fld"><label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Viajantes</label>
-            <button type="button" class="pbtn" id="p-pb" onclick="toggleDrop('p')">1 adulto, 0 crianças</button>
+            <button type="button" class="pbtn" id="p-pb" onclick="toggleDrop('p')">1 adulto, 0 criancas</button>
             <div class="pdrop" id="p-pd">
               <div class="prow"><div><div class="plab">Adultos</div><div class="psub">12 anos ou mais</div></div><div class="pctrl"><button type="button" class="pcb" onclick="chg('p','a',-1)">-</button><span class="pcount" id="p-ca">1</span><button type="button" class="pcb add" onclick="chg('p','a',1)">+</button></div></div>
               <div class="prow"><div><div class="plab">Crianças</div><div class="psub">2 a 11 anos</div></div><div class="pctrl"><button type="button" class="pcb" onclick="chg('p','c',-1)">-</button><span class="pcount" id="p-cc">0</span><button type="button" class="pcb add" onclick="chg('p','c',1)">+</button></div></div>
@@ -1511,7 +1510,7 @@ function updBtn(t){
 }
 function confirmP(t){
   var s=ps[t];
-  if(s.c>0&&s.ages.filter(function(x){return !x;}).length>0){alert('Informe a idade de todas as crianças.');return;}
+  if(s.c>0&&s.ages.filter(function(x){return !x;}).length>0){alert('Informe a idade de todas as criancas.');return;}
   document.getElementById(t+'-pd').style.display='none';
   var bw=document.getElementById(t+'-bg');
   if(s.c>0){
@@ -1533,6 +1532,7 @@ function send(msg){
   window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg),'_blank');
   document.getElementById('modal').classList.add('open');
 }
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -1597,7 +1597,7 @@ envVoos = function(){
   var tipo=document.querySelector("input[name=tt]:checked").value;
   var s=ps["v"];
   if(!o||!d||!ida||!wa){alert("Preencha: origem, destino, data de ida e WhatsApp.");return;}
-  if(s.c>0&&s.ages.filter(function(x){return !x;}).length>0){alert("Confirme a idade das crianças.");return;}
+  if(s.c>0&&s.ages.filter(function(x){return !x;}).length>0){alert("Confirme a idade das criancas.");return;}
   var vv=volta||"Somente ida";
   send("PASSAGEM AEREA - MR Viagens\n\nOrigem: "+o+"\nDestino: "+d+"\nIda: "+ida+"\nVolta: "+(tipo==="so"?"Somente ida":vv)+"\nPassageiros: "+pStr("v")+"\nWhatsApp: "+fmtN(wa)+"\n\nEnviado pelo site MR Viagens");
 };
@@ -1608,7 +1608,7 @@ envHotel = function(){
   var wa=document.getElementById("wa-h").value.trim();
   var s=ps["h"];
   if(!d||!ci||!co||!wa){alert("Preencha todos os campos e WhatsApp.");return;}
-  if(s.c>0&&s.ages.filter(function(x){return !x;}).length>0){alert("Confirme a idade das crianças.");return;}
+  if(s.c>0&&s.ages.filter(function(x){return !x;}).length>0){alert("Confirme a idade das criancas.");return;}
   send("HOTEL - MR Viagens\n\nDestino: "+d+"\nCheck-in: "+ci+"\nCheck-out: "+co+"\nViajantes: "+pStr("h")+"\nWhatsApp: "+fmtN(wa)+"\n\nEnviado pelo site MR Viagens");
 };
 envCarro = function(){
@@ -1618,7 +1618,7 @@ envCarro = function(){
   var cat=document.getElementById("c-cat").value;
   var wa=document.getElementById("wa-c").value.trim();
   if(!l||!r||!dv||!wa){alert("Preencha todos os campos e WhatsApp.");return;}
-  send("ALUGUEL DE CARRO - MR Viagens\n\nLocal: "+l+"\nRetirada: "+r+"\nDevolução: "+dv+"\nCategoria: "+cat+"\nWhatsApp: "+fmtN(wa)+"\n\nEnviado pelo site MR Viagens");
+  send("ALUGUEL DE CARRO - MR Viagens\n\nLocal: "+l+"\nRetirada: "+r+"\nDevolucao: "+dv+"\nCategoria: "+cat+"\nWhatsApp: "+fmtN(wa)+"\n\nEnviado pelo site MR Viagens");
 };
 envPacote = function(){
   var d=document.getElementById("p-dest").value.trim();
@@ -1627,17 +1627,14 @@ envPacote = function(){
   var wa=document.getElementById("wa-p").value.trim();
   var sp=ps["p"];
   if(!d||!s||!wa){alert("Preencha destino, data de saida e WhatsApp.");return;}
-  if(sp.c>0&&sp.ages.filter(function(x){return !x;}).length>0){alert("Confirme a idade das crianças.");return;}
+  if(sp.c>0&&sp.ages.filter(function(x){return !x;}).length>0){alert("Confirme a idade das criancas.");return;}
   send("PACOTE - MR Viagens\n\nDestino: "+d+"\nSaida: "+s+"\nViajantes: "+pStr("p")+"\nCategoria: "+t+"\nWhatsApp: "+fmtN(wa)+"\n\nEnviado pelo site MR Viagens");
 };
 </script>
 
 
 <div class="toast" id="promo-toast"></div>
-<div class="share-toast" id="shareToast">
-  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-  <span id="shareToastMsg">Mensagem copiada!</span>
-</div>
+<div class="share-toast" id="shareToast" role="status"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><span id="shareToastMsg">Compartilhado!</span></div>
 
 <script>
 /* GH_CONFIG_START */
@@ -1646,72 +1643,11 @@ var GH_REPO   = 'mrviagens-dados';
 var GH_BRANCH = 'main';
 /* GH_CONFIG_END */
 
-/* ════ MODO DEMO — dados de promoções para demonstração ════ */
-var DEMO_PROMOS = [
-  {
-    ativo: true,
-    tag: '✈️ Passagem',
-    titulo: 'Fortaleza → Lisboa — ida e volta',
-    datas: '15 Jul – 29 Jul 2025',
-    descricao: 'Voo direto com a TAP Air Portugal. Inclui 1 bagagem despachada. Tarifas por pessoa com impostos.',
-    preco_parcelado: 'R$ 2.890',
-    preco_vista: 'R$ 2.690',
-    form_tipo: 'voos',
-    origem: 'Fortaleza (FOR)',
-    destino: 'Lisboa (LIS)',
-    data_ida_iso: '2025-07-15',
-    data_volta_iso: '2025-07-29',
-    link: 'https://wa.me/5579991656665?text=' + encodeURIComponent('Olá! Tenho interesse na promoção Fortaleza → Lisboa. Podem me passar mais detalhes?')
-  },
-  {
-    ativo: true,
-    tag: '🏨 Hotel',
-    titulo: 'Gramado 4★ — 4 noites com café da manhã',
-    datas: '01 Ago – 05 Ago 2025',
-    descricao: 'Hotel Serra Azul, quarto casal, café da manhã incluso. Promoção de temporada de inverno.',
-    preco_parcelado: 'R$ 1.240',
-    preco_vista: 'R$ 1.100',
-    form_tipo: 'hotel',
-    destino: 'Gramado (RS)',
-    data_ida_iso: '2025-08-01',
-    data_volta_iso: '2025-08-05',
-    link: 'https://wa.me/5579991656665?text=' + encodeURIComponent('Olá! Quero saber mais sobre o pacote Hotel Gramado 4 noites com café da manhã.')
-  },
-  {
-    ativo: true,
-    tag: '🌍 Pacote',
-    titulo: 'Buenos Aires — 5 dias completo',
-    datas: '10 Set – 15 Set 2025',
-    descricao: 'Aéreo + hotel 3★ + traslados. Saída de Recife. Passeio de city tour incluso no 1º dia.',
-    preco_parcelado: 'R$ 3.450',
-    preco_vista: 'R$ 3.150',
-    form_tipo: 'pacote',
-    destino: 'Buenos Aires (EZE)',
-    data_ida_iso: '2025-09-10',
-    link: 'https://wa.me/5579991656665?text=' + encodeURIComponent('Olá! Tenho interesse no pacote Buenos Aires 5 dias. Pode me enviar mais informações?')
-  },
-  {
-    ativo: true,
-    tag: '🚗 Carro',
-    titulo: 'Aluguel de carro em Orlando — 7 dias',
-    datas: '20 Dez – 27 Dez 2025',
-    descricao: 'SUV para até 5 pessoas, com seguro básico incluso. Retirada no aeroporto MCO.',
-    preco_parcelado: 'R$ 890',
-    preco_vista: 'R$ 820',
-    form_tipo: 'carro',
-    destino: 'Orlando (MCO)',
-    data_ida_iso: '2025-12-20',
-    data_volta_iso: '2025-12-27',
-    link: 'https://wa.me/5579991656665?text=' + encodeURIComponent('Olá! Quero reservar o aluguel de carro em Orlando para 20 a 27 de dezembro.')
-  }
-];
-
 var CIDX = 0;
 var PROMO_LIST = [];
 
 function initCarousel() {
   if (!GH_OWNER || !GH_REPO) {
-    PROMO_LIST = DEMO_PROMOS;
     buildCarousel();
     return;
   }
@@ -1741,15 +1677,12 @@ function initCarousel() {
         .catch(function() { return []; });
     })
     .then(function(data) {
-      PROMO_LIST = Array.isArray(data) && data.length
+      PROMO_LIST = Array.isArray(data)
         ? data.filter(function(p){ return p.ativo !== false; })
-        : DEMO_PROMOS;
+        : [];
       buildCarousel();
     })
-    .catch(function() {
-      PROMO_LIST = DEMO_PROMOS;
-      buildCarousel();
-    });
+    .catch(function() { buildCarousel(); });
 }
 
 function buildCarousel() {
@@ -1787,10 +1720,7 @@ function buildCarousel() {
       + (p.preco_vista ? '<div class="promo-price-vista">ou ' + p.preco_vista + ' \u00e0 vista</div>' : '')
       + '</div>'
       + '<a class="promo-btn" href="https://chat.whatsapp.com/KOA0efvRHX39Ih9d3MJEca?mode=gi_t" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center;"><span class="btn-txt-default">\uD83C\uDFF7\uFE0F Acesse a promo\u00e7\u00e3o</span><span class="btn-txt-hover">\uD83D\uDC51 Entre para o Grupo VIP</span></a>'
-      + '<button class="promo-share-btn" onclick="compartilharPromo(' + i + ',event)">'
-      +   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
-      +   ' Compartilhar no WhatsApp'
-      + '</button>'
+      + '<button class="promo-share-btn" onclick="compartilharPromo('+i+',event)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg><span> Compartilhar no WhatsApp</span></button>'
       + '</div>';
     track.appendChild(card);
     var dot = document.createElement('span');
@@ -2077,6 +2007,7 @@ if (GH_OWNER && GH_REPO) {
 }
 </script>
 
+
 <script>
 /* ════ FAIXA ROLANTE — busca noticias.json no GitHub ══════════ */
 (function() {
@@ -2164,44 +2095,33 @@ function compartilharPromo(idx, evt) {
   evt && evt.preventDefault();
   var p = PROMO_LIST[idx];
   if (!p) return;
-
   var btn = evt && evt.currentTarget;
 
-  // Monta a mensagem pré-formatada
   var linhas = [
-    '✈️ *MR Viagens — Oferta Exclusiva!*',
+    '\u2708\ufe0f *MR Viagens \u2014 Oferta Exclusiva!*',
     '',
-    '🏷️ *' + (p.titulo || 'Promoção') + '*'
+    '\uD83C\uDFF7\uFE0F *' + (p.titulo || 'Promo\u00e7\u00e3o') + '*'
   ];
-  if (p.datas)          linhas.push('📅 ' + p.datas);
-  if (p.descricao)      linhas.push('📝 ' + (p.descricao || '').replace(/<br>/g, '\n').replace(/\\n/g, '\n'));
-  if (p.preco_parcelado) linhas.push('💰 A partir de *' + p.preco_parcelado + '*' + (p.preco_vista ? ' (ou ' + p.preco_vista + ' à vista)' : ''));
+  if (p.datas)           linhas.push('\uD83D\uDCC5 ' + p.datas);
+  if (p.descricao)       linhas.push('\uD83D\uDCDD ' + (p.descricao || '').replace(/<br>/g, '\n').replace(/\\n/g, '\n'));
+  if (p.preco_parcelado) linhas.push('\uD83D\uDCB0 A partir de *' + p.preco_parcelado + '*' + (p.preco_vista ? ' (ou ' + p.preco_vista + ' \u00e0 vista)' : ''));
   linhas.push('');
-  linhas.push('🔗 Fale com a gente e garanta o seu:');
+  linhas.push('\uD83D\uDD17 Fale com a gente e garanta o seu:');
   linhas.push(p.link || ('https://wa.me/' + WA));
   linhas.push('');
-  linhas.push('_MR Viagens — Emissão Inteligente com Milhas_ 🌍');
-
+  linhas.push('_MR Viagens \u2014 Emiss\u00e3o Inteligente com Milhas_ \uD83C\uDF0D');
   var mensagem = linhas.join('\n');
   var waUrl = 'https://wa.me/?text=' + encodeURIComponent(mensagem);
 
-  // Tenta abrir o WhatsApp diretamente para compartilhar
-  // Se a Web Share API estiver disponível, usa ela (mobile nativo)
   if (navigator.share) {
-    navigator.share({
-      title: 'MR Viagens — ' + (p.titulo || 'Promoção'),
-      text: mensagem
-    }).then(function() {
-      mostrarShareToast('✅ Compartilhado com sucesso!', btn);
-    }).catch(function() {
-      // Usuário cancelou — sem erro
-    });
+    navigator.share({ title: 'MR Viagens', text: mensagem })
+      .then(function() { mostrarShareToast('\u2705 Compartilhado!', btn); })
+      .catch(function() {});
     return;
   }
 
-  // Fallback: abre WhatsApp Web/App com a mensagem
   window.open(waUrl, '_blank');
-  mostrarShareToast('📲 Abrindo WhatsApp…', btn);
+  mostrarShareToast('\uD83D\uDCF2 Abrindo WhatsApp\u2026', btn);
 }
 
 function mostrarShareToast(msg, btn) {
@@ -2210,22 +2130,18 @@ function mostrarShareToast(msg, btn) {
   if (!toast) return;
   msgEl.textContent = msg;
   toast.classList.add('show');
-
-  // Feedback visual no botão
   if (btn) {
     btn.classList.add('copied');
-    var txtEl = btn.querySelector('span') || btn;
-    var orig = txtEl.textContent;
-    txtEl.textContent = '✓ Compartilhado!';
+    var span = btn.querySelector('span');
+    if (span) span.textContent = ' Compartilhando\u2026';
     setTimeout(function() {
       btn.classList.remove('copied');
-      txtEl.textContent = ' Compartilhar no WhatsApp';
+      if (span) span.textContent = ' Compartilhar no WhatsApp';
     }, 2500);
   }
-
   setTimeout(function() { toast.classList.remove('show'); }, 2800);
 }
-/* ══════════════════════════════════════════════════════════ */
+/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 */
 </script>
 </body>
 </html>
