@@ -281,7 +281,7 @@ nav{
 .hero{
   position:relative;min-height:100svh;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:96px 5vw 56px;text-align:center;overflow:hidden;
+  padding:20px 5vw 56px;text-align:center;overflow:hidden;
 }
 .hero-orbs{position:absolute;inset:0;pointer-events:none;z-index:0}
 .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:ofloat ease-in-out infinite}
@@ -627,9 +627,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.45);cursor:
   width:100%;display:flex;align-items:center;justify-content:center;gap:7px;
   background:linear-gradient(135deg,var(--blue),#0d5fa8);color:white;border:none;
   border-radius:10px;padding:11px;font-size:13.5px;font-weight:700;
-  font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;
+  font-family:'DM Sans',sans-serif;cursor:pointer;
+  position:relative;overflow:hidden;min-height:44px;
+  transition:background .35s ease;
 }
-.promo-btn:hover{opacity:.88}
+.promo-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,#25D366,#128C7E);
+  opacity:0;transition:opacity .35s ease;border-radius:10px;
+}
+.promo-btn:hover::before{opacity:1;}
 .promo-btn svg{width:15px;height:15px}
 .carousel-nav{display:flex;align-items:center;gap:10px;margin-top:20px;justify-content:center}
 .cnav-btn{width:40px;height:40px;border-radius:50%;background:var(--glass2);border:1px solid var(--border2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:18px}
@@ -759,7 +766,7 @@ footer{
   .burger{display:flex}
   .logo-img{height:38px}
   .mob-menu{top:80px}
-  .hero{padding:82px 4vw 44px}
+  .hero{padding:16px 4vw 44px}
   .g5,.g4,.g4x{grid-template-columns:1fr 1fr}
   .warow{flex-direction:column}
   .sendbtn{width:100%;justify-content:center}
@@ -894,11 +901,11 @@ footer{
 }
 
 /* ── Botão VIP hover ── */
-.promo-btn .btn-txt-default,.promo-btn .btn-txt-hover{position:relative;z-index:1;display:inline-block;transition:opacity .3s ease,transform .3s ease;}
+.promo-btn .btn-txt-default,.promo-btn .btn-txt-hover{position:absolute;left:0;right:0;text-align:center;transition:opacity .3s ease,transform .3s ease;z-index:1;}
 .promo-btn .btn-txt-default{opacity:1;transform:translateY(0);}
-.promo-btn .btn-txt-hover{display:none;opacity:0;transform:translateY(6px);}
-.promo-btn:hover .btn-txt-default{display:none;}
-.promo-btn:hover .btn-txt-hover{display:inline-block;opacity:1;transform:translateY(0);animation:slideUpIn .3s ease forwards;}
+.promo-btn .btn-txt-hover{opacity:0;transform:translateY(8px);}
+.promo-btn:hover .btn-txt-default{opacity:0;transform:translateY(-8px);}
+.promo-btn:hover .btn-txt-hover{opacity:1;transform:translateY(0);}
 @keyframes slideUpIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .promo-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#25D366,#128C7E);opacity:0;transition:opacity .4s ease;border-radius:10px;}
 .promo-btn:hover::before{opacity:1;}
