@@ -682,11 +682,11 @@ main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 5vw
 <!-- CONFIRM -->
 <div class="confirm-bg" id="confirmModal">
   <div class="confirm-box">
-    <h4>Excluir Promo&ccedil;&atilde;o?</h4>
-    <p>Esta a&ccedil;&atilde;o n&atilde;o pode ser desfeita.</p>
+    <h4 id="confirmTitle">Excluir item?</h4>
+    <p id="confirmSub">Esta ação não pode ser desfeita.</p>
     <div class="confirm-btns">
       <button class="conf-no" onclick="closeConfirm()">Cancelar</button>
-      <button class="conf-yes" onclick="confirmDelete()">Excluir</button>
+      <button class="conf-yes" id="confirmYes" onclick="confirmDelete()">Excluir</button>
     </div>
   </div>
 </div>
@@ -700,6 +700,7 @@ var PROMO_PATH = 'promocoes.json';
 var promos = [];
 var editIdx = -1;
 var deleteIdx = -1;
+var newsDeleteIdx = -1;
 var currentImgBlob = null;
 
 // -- GitHub API helpers --------------------------------------
@@ -1102,17 +1103,28 @@ function savePromos(msg) {
   return putJsonFile(PROMO_PATH, promos, msg||'Atualizar promo\u00e7\u00f5es');
 }
 
-function askDelete(i){ deleteIdx=i; document.getElementById('confirmModal').classList.add('open'); }
-function closeConfirm(){ document.getElementById('confirmModal').classList.remove('open'); deleteIdx=-1; }
+function askDelete(i){
+  deleteIdx = i;
+  newsDeleteIdx = -1;
+  document.getElementById('confirmTitle').textContent = 'Excluir Promoção?';
+  document.getElementById('confirmSub').textContent   = 'Esta ação não pode ser desfeita.';
+  document.getElementById('confirmYes').onclick = confirmDelete;
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirmModal').classList.remove('open');
+  deleteIdx = -1;
+  newsDeleteIdx = -1;
+}
 function confirmDelete(){
-  if (deleteIdx<0){ closeConfirm(); return; }
+  if (deleteIdx < 0){ closeConfirm(); return; }
   var idx = deleteIdx;
   closeConfirm();
   promos.splice(idx, 1);
-  renderGrid(); // atualiza imediatamente com array local
-  savePromos('Excluir promoc\u00e3o')
-    .then(function(){ showToast('Promo\u00e7\u00e3o exclu\u00edda!'); })
-    .catch(function(e){ showToast('Erro ao excluir: '+e.message); loadPromos(); });
+  renderGrid();
+  savePromos('Excluir promoção')
+    .then(function(){ showToast('Promoção excluída!'); })
+    .catch(function(e){ showToast('Erro ao excluir: ' + e.message); loadPromos(); });
 }
 
 function showToast(msg){
@@ -1426,16 +1438,21 @@ function toggleNoticia(idx) {
 // Excluir
 function excluirNoticia(idx) {
   var n = noticias[idx];
-  document.getElementById('confirmSub').textContent = 'Notícia "' + n.titulo + '" será removida.';
-  document.getElementById('confirmOverlay').classList.add('show');
-  document.getElementById('confirmYes').onclick = function(){
-    noticias.splice(idx, 1);
-    saveNoticias('Excluir notícia').then(function(){
-      fecharConfirm();
-      renderNewsGrid();
-      showToast('✓ Notícia removida!');
-    });
+  if (!n) return;
+  newsDeleteIdx = idx;
+  deleteIdx = -1;
+  document.getElementById('confirmTitle').textContent = 'Excluir Notícia?';
+  document.getElementById('confirmSub').textContent   = '"' + (n.titulo || 'Esta notícia') + '" será removida permanentemente.';
+  document.getElementById('confirmYes').onclick = function() {
+    var i = newsDeleteIdx;
+    closeConfirm();
+    noticias.splice(i, 1);
+    renderNewsGrid();
+    saveNoticias('Excluir notícia')
+      .then(function()  { showToast('✓ Notícia removida!'); })
+      .catch(function(e){ showToast('Erro ao excluir: ' + e.message); loadNoticias(); });
   };
+  document.getElementById('confirmModal').classList.add('open');
 }
 </script>
 </body>
