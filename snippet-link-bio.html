@@ -1,0 +1,89 @@
+<!--
+  ══════════════════════════════════════════════════════════════
+  SNIPPET DE INTEGRAÇÃO — Cole ANTES de </body> no index.html
+  Ativa a aba certa do formulário quando o visitante vem do
+  link-bio.html (Instagram) com ?tab=voos|hotel|carro|pacote
+  ══════════════════════════════════════════════════════════════
+-->
+<script>
+(function () {
+  'use strict';
+
+  var ABAS_VALIDAS = ['voos', 'hotel', 'carro', 'pacote'];
+
+  /* 1. Descobre qual aba ativar (sessionStorage tem prioridade) */
+  function resolverTab() {
+    var tab = '';
+    try { tab = sessionStorage.getItem('mrv_tab') || ''; } catch (_) {}
+    if (!tab) {
+      try {
+        tab = new URLSearchParams(window.location.search).get('tab') || '';
+      } catch (_) {
+        var m = window.location.search.match(/[?&]tab=([^&]+)/);
+        tab = m ? decodeURIComponent(m[1]) : '';
+      }
+    }
+    return ABAS_VALIDAS.indexOf(tab) !== -1 ? tab : '';
+  }
+
+  /* 2. Ativa a aba e rola suavemente até o formulário */
+  function ativar(tab) {
+    /* goTab() já existe no index.html: muda a aba ativa + chama centerForm() */
+    if (typeof goTab === 'function') {
+      goTab(tab);
+    } else {
+      /* Fallback seguro caso goTab ainda não exista */
+      ABAS_VALIDAS.forEach(function (t) {
+        var el = document.getElementById('tab-' + t);
+        if (el) el.style.display = t === tab ? 'block' : 'none';
+      });
+      document.querySelectorAll('.stab').forEach(function (btn, i) {
+        btn.classList.toggle('active', i === ABAS_VALIDAS.indexOf(tab));
+      });
+    }
+
+    /* Rola até #buscar logo abaixo do nav */
+    var secao = document.getElementById('buscar');
+    if (!secao) return;
+    var navH = (document.querySelector('nav') || {}).offsetHeight || 68;
+    var topo  = secao.getBoundingClientRect().top + window.pageYOffset - navH - 8;
+    window.scrollTo({ top: topo, behavior: 'smooth' });
+
+    /* Foca o primeiro campo visível da aba para facilitar o preenchimento */
+    setTimeout(function () {
+      var campos = {
+        voos:   '#origem',
+        hotel:  '#h-dest',
+        carro:  '#c-local',
+        pacote: '#p-dest'
+      };
+      var el = document.querySelector(campos[tab]);
+      if (el) el.focus({ preventScroll: true });
+    }, 400);
+  }
+
+  /* 3. Limpa rastros da URL e do sessionStorage */
+  function limpar() {
+    try { sessionStorage.removeItem('mrv_tab'); } catch (_) {}
+    try {
+      var url = new URL(window.location.href);
+      url.searchParams.delete('tab');
+      history.replaceState(null, '', url.toString());
+    } catch (_) {}
+  }
+
+  /* 4. Ponto de entrada — espera a página carregar completamente */
+  function init() {
+    var tab = resolverTab();
+    if (!tab) return;
+    limpar();
+    ativar(tab);
+  }
+
+  if (document.readyState === 'complete') {
+    init();
+  } else {
+    window.addEventListener('load', init);
+  }
+})();
+</script>
