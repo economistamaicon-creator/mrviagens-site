@@ -602,7 +602,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.45);cursor:
 
 /* -- CAROUSEL PROMOCOES -- */
 .carousel-wrap{position:relative;padding-bottom:8px}
-.carousel-track-outer{overflow:hidden}
+.carousel-track-outer{overflow:hidden;cursor:grab}
+.carousel-track-outer:active{cursor:grabbing}
 .carousel-track{display:flex;gap:16px;transition:transform .42s cubic-bezier(.4,0,.2,1);will-change:transform}
 .promo-card{
   flex-shrink:0;width:269px;border-radius:var(--r2);overflow:hidden;
@@ -778,6 +779,9 @@ footer{
   .sec,.howsec{padding:64px 4vw}
   .ctasec{padding:72px 4vw}
   footer{padding:48px 4vw 24px}
+  /* Carrossel mobile: permite ver cards laterais parcialmente */
+  .carousel-track-outer{overflow:visible}
+  .carousel-wrap{overflow:hidden}
 }
 @media(max-width:480px){body{padding-top:76px;}.ticker-wrap{top:62px;height:18px;}.ticker-story{font-size:13.1px;}.ticker-rail{animation-duration:14s;}.mob-menu{top:80px;}
   .g5,.g4,.g4x{grid-template-columns:1fr}
@@ -1739,6 +1743,9 @@ function buildCarousel() {
   updateCarousel();
 }
 
+function isMobile() {
+  return window.innerWidth <= 768;
+}
 function getCardW() {
   var c = document.querySelector('.promo-card');
   return c ? c.offsetWidth + 16 : 285;
@@ -1746,6 +1753,7 @@ function getCardW() {
 function getMaxIdx() {
   var outer = document.querySelector('.carousel-track-outer');
   if (!outer || !PROMO_LIST.length) return 0;
+  if (isMobile()) return PROMO_LIST.length - 1;  /* mobile: cada card centraliza */
   var outerW  = outer.offsetWidth;
   var cardW   = getCardW();
   var visible = Math.floor(outerW / cardW) || 1;
@@ -1756,7 +1764,23 @@ function updateCarousel() {
   if (!track || !PROMO_LIST.length) return;
   var maxIdx = getMaxIdx();
   if (CIDX > maxIdx) CIDX = maxIdx;
-  track.style.transform = 'translateX(-' + (CIDX * getCardW()) + 'px)';
+
+  var cardW = getCardW();
+  var offset;
+  if (isMobile()) {
+    /* Centraliza o card ativo horizontalmente na tela */
+    var outer = document.querySelector('.carousel-track-outer');
+    var outerW = outer ? outer.offsetWidth : window.innerWidth;
+    var cardActual = document.querySelector('.promo-card');
+    var cardOnlyW  = cardActual ? cardActual.offsetWidth : (cardW - 16);
+    var centerOffset = (outerW - cardOnlyW) / 2;
+    offset = (CIDX * cardW) - centerOffset;
+    if (offset < 0) offset = 0;
+  } else {
+    offset = CIDX * cardW;
+  }
+
+  track.style.transform = 'translateX(-' + offset + 'px)';
   document.querySelectorAll('.cdot').forEach(function(d,i){ d.classList.toggle('active', i===CIDX); });
   document.getElementById('prevBtn').disabled = CIDX === 0;
   document.getElementById('nextBtn').disabled = CIDX >= maxIdx;
@@ -1812,17 +1836,99 @@ function fillPromo(i) {
 }
 
 (function(){
-  var sx = 0;
+  var startX = 0;
+  var startY = 0;
+  var dragging = false;
+  var lockAxis = null;   /* 'h' | 'v' | null */
+  var baseOffset = 0;
+
+  function getBaseOffset() {
+    if (isMobile()) {
+      var outer = document.querySelector('.carousel-track-outer');
+      var outerW = outer ? outer.offsetWidth : window.innerWidth;
+      var card = document.querySelector('.promo-card');
+      var cardW = card ? card.offsetWidth : 253;
+      var cardStep = card ? card.offsetWidth + 16 : 285;
+      return (CIDX * cardStep) - (outerW - cardW) / 2;
+    }
+    return CIDX * getCardW();
+  }
+
+  function applyDrag(dx) {
+    var track = document.getElementById('carouselTrack');
+    if (!track) return;
+    var offset = baseOffset - dx;
+    track.style.transition = 'none';
+    track.style.transform  = 'translateX(-' + offset + 'px)';
+  }
+
+  function onStart(clientX, clientY) {
+    var track = document.getElementById('carouselTrack');
+    if (!track || !PROMO_LIST.length) return;
+    dragging  = true;
+    lockAxis  = null;
+    startX    = clientX;
+    startY    = clientY;
+    baseOffset = getBaseOffset();
+    track.style.transition = 'none';
+  }
+
+  function onMove(clientX, clientY) {
+    if (!dragging) return;
+    var dx = clientX - startX;
+    var dy = clientY - startY;
+    /* Determina eixo dominante na primeira movimentação */
+    if (!lockAxis && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      lockAxis = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+    }
+    if (lockAxis === 'h') applyDrag(dx);
+  }
+
+  function onEnd(clientX) {
+    if (!dragging) return;
+    dragging = false;
+    lockAxis = null;
+    var track = document.getElementById('carouselTrack');
+    if (track) track.style.transition = '';   /* restaura transição CSS */
+    var dx = clientX - startX;
+    var threshold = 40;
+    if (dx < -threshold && CIDX < getMaxIdx())  goToCard(CIDX + 1);
+    else if (dx > threshold && CIDX > 0)        goToCard(CIDX - 1);
+    else                                         updateCarousel();  /* snap de volta */
+  }
+
   document.addEventListener('DOMContentLoaded', function(){
     var outer = document.querySelector('.carousel-track-outer');
     if (!outer) return;
-    outer.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; },{passive:true});
-    outer.addEventListener('touchend',   function(e){
-      var dx = e.changedTouches[0].clientX - sx;
-      if (Math.abs(dx) < 50) return;
-      if (dx < 0 && CIDX < getMaxIdx()) cNav(1);
-      else if (dx > 0 && CIDX > 0)      cNav(-1);
-    },{passive:true});
+
+    /* ── Touch ── */
+    outer.addEventListener('touchstart', function(e){
+      onStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive:true});
+    outer.addEventListener('touchmove', function(e){
+      onMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive:true});
+    outer.addEventListener('touchend', function(e){
+      onEnd(e.changedTouches[0].clientX);
+    }, {passive:true});
+
+    /* ── Mouse (desktop drag) ── */
+    outer.addEventListener('mousedown', function(e){
+      if (e.button !== 0) return;
+      onStart(e.clientX, e.clientY);
+      outer.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', function(e){
+      if (!dragging) return;
+      onMove(e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseup', function(e){
+      if (!dragging) return;
+      outer.style.userSelect = '';
+      onEnd(e.clientX);
+    });
+    /* Impede navegação de link ao dar drag */
+    outer.addEventListener('dragstart', function(e){ e.preventDefault(); });
   });
 })();
 
